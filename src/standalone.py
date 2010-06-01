@@ -6,6 +6,7 @@ import string, os, wx, wx.grid
 from ebixml import EBIXML
 from ipsstatsdata import IPSStatsData
 from export_html import export_html
+from export_xls import export_xls
 import ConfigParser
 from random import choice
 from xml.sax import ContentHandler
@@ -45,8 +46,8 @@ class IPSStats_Frame(wx.Frame):
 
         self.file_item = wx.Menu()
         self.open_item = wx.MenuItem(self.file_item, wx.ID_OPEN, "&Open...", "", wx.ITEM_NORMAL)
-        self.export_html_item = wx.MenuItem(self.file_item, wx.NewId(), "Export &HTML", "", wx.ITEM_NORMAL)
-        self.export_xls_item = wx.MenuItem(self.file_item, wx.NewId(), "Export &XLS", "", wx.ITEM_NORMAL)
+        self.export_html_item = wx.MenuItem(self.file_item, wx.NewId(), "Export as &HTML...", "", wx.ITEM_NORMAL)
+        self.export_xls_item = wx.MenuItem(self.file_item, wx.NewId(), "Export as &XLS...", "", wx.ITEM_NORMAL)
         self.exit_item = wx.MenuItem(self.file_item, wx.ID_EXIT, "&Quit", "", wx.ITEM_NORMAL)
         self.file_item.AppendItem(self.open_item)
         self.file_item.AppendItem(self.export_html_item)
@@ -74,6 +75,7 @@ class IPSStats_Frame(wx.Frame):
 
         self.Bind(wx.EVT_MENU, self.OnOpen, self.open_item)
         self.Bind(wx.EVT_MENU, self.OnExportHTML, self.export_html_item)
+        self.Bind(wx.EVT_MENU, self.OnExportXLS, self.export_xls_item)
         self.Bind(wx.EVT_MENU, self.OnExit, self.exit_item)
         self.Bind(wx.EVT_MENU, self.OnAbout, self.about_item)
         # end wxGlade
@@ -131,6 +133,16 @@ class IPSStats_Frame(wx.Frame):
             self.dirname = dlg.GetPath()
             html = export_html(self.session, self.config)
             html.export(directory=self.dirname)
+        dlg.Destroy()
+    
+    def OnExportXLS(self, event): # wxGlade: MetaIPS_Frame.<event_handler>
+        """ Open a file"""
+        self.dirname = ''
+        dlg = wx.DirDialog(self, "Choose a folder", self.dirname, wx.OPEN)
+        if dlg.ShowModal() == wx.ID_OK:
+            self.dirname = dlg.GetPath()
+            xls = export_xls(self.session, self.config)
+            xls.export(directory=self.dirname)
         dlg.Destroy()
     
     def OnExit(self, event):

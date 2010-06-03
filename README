@@ -6,86 +6,13 @@ Site: http://github.com/devrkel/IPRStats
 A statistical tool that eases the analysis of InterProScan results
 by generating charts and tables with links to additional information.
 
-1. General installation
-
-   1.1 Setting up the database
-       
-       If you do not have administrative access to a MySQL database,
-       download and setup the MySQL Community Server from
-       http://www.mysql.com/downloads/
-       
-       From the terminal, bring up the MySQL interactive prompt by
-       typing "mysql -u<user> -p" where <user> is a user with
-       database creation rights, and then that users' password.
-       
-       At the mysql prompt, type "create database <database_name>"
-       where <database_name> is the name of the database that
-       will contain the IPRStats data.
-
-   1.2 Getting the source code
-
-       Now get a copy of the project's source code from
-       http://github.com/devrkel/IPRStats.  This can be accomplished
-       in two ways:
-
-       a. Git
-          
-          You download an install the latest version of Git from
-          http://git-scm.com/download
-          
-          From the terminal, navigate to the directory you where
-          you want to install IPRStats.
-          
-          Download a copy of the source code and change into the
-          source folder by typing:
-          
-            git clone git://github.com/devrkel/IPRStats.git
-            cd IPRStats/src/
-          
-       b. ZIP or TAR
-          
-          From http://github.com/devrkel/IPRStats click on the button
-          labeled "Download Source".
-          
-          Save the chosen file and extract it to the directory you
-          want to install IPRStats.
-          
-          Navigate to the extracted directory and open the "src"
-          folder.
-          
-   1.3 Configuring IPRStats
-       
-       In the "src" folder, open the configuration file "iprstats.cfg"
-       in a text editor.
-       
-       In the "[local db]" section, edit the host, user, passwd, and db
-       settings to allow IPRStats write access to the MySQL database
-       specified by "db".
-       
-       Optional: If you have a local mirror of the GO terms database,
-       you can modify those options here and set "go_lookup" to "true".
-       If not using a local mirror, setting "go_lookup" to "true" may
-       result in a significant slow down.
-       
-       Save "ipsstats.cfg".
-       
-2. Running as a standalone
-
-   Assuming you correctly set-up the MySQL database and configured
-   IPRStats accordingly, the IPRStats standalone should work correctly.
-
-   From a terminal, navigate to "IPRStats/src/" and type
-   "python standalone.py". A dialog box should open up.
-   
-   From File select Open... and choose the InterProStats output file
-   you wish to open.
-
-   Depending on the size of the file, you may have to wait several
-   minutes before you can view the IPRStats generated information.
-
-3. Running as a server
+1. Requirements
 
    // TODO
+
+2. Installation
+
+   For help with installation and configuration, please see INSTALL.
 
 4. Notes
    

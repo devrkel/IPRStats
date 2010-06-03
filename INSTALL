@@ -3,7 +3,8 @@ General installation
    General installation is required for installing both the
    IPRStats server and standalone applications.  These instructions
    will guide you through setting up a MySQL database, extracting
-   the source code, and configuring the application.
+   the source code, and configuring the application. They are also
+   available online at http://wiki.github.com/devrkel/IPRStats/
 
    1. Setting up the database
      
@@ -11,9 +12,10 @@ General installation
       download and setup the MySQL Community Server from
       http://www.mysql.com/downloads/
       
-      From the terminal, bring up the MySQL interactive prompt by
-      typing "mysql -u<user> -p" where <user> is a user with
-      database creation rights, and then that users' password.
+      From the terminal, type "mysql -u<user> -p" where <user> is a
+      user with database creation rights. When prompted, type that
+      user's password.  This will bring up the interactive MySQL
+      prompt.
       
       At the mysql prompt, type "create database <database_name>"
       where <database_name> is the name of the database that
@@ -55,9 +57,9 @@ General installation
       In the "src" folder, open the configuration file "iprstats.cfg"
       in a text editor.
       
-      In the "[local db]" section, edit the host, user, passwd, and db
-      settings to allow IPRStats write access to the MySQL database
-      specified by "db".
+      Under the [local db] section, edit the host, user, passwd, and
+      db settings to allow IPRStats write access to the MySQL
+      database specified by "db".
       
       Optional: If you have a local mirror of the GO terms database,
       you can modify those options here and set "go_lookup" to "true".
@@ -72,10 +74,10 @@ Running as a standalone application
    IPRStats accordingly, the IPRStats standalone should work correctly.
 
    1. From a terminal, navigate to "IPRStats/src/" and type
-      "python standalone.py". A dialog box should open up.
+      "python standalone.py". The application should open up.
    
-   2. From File select Open... and choose the InterProStats output file
-      you wish to open.
+   2. From File choose Open... and select the InterProStats output
+      file you wish to view.
 
    3. Depending on the size of the file, you may have to wait several
       minutes before you can view the IPRStats generated information.

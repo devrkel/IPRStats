@@ -7,8 +7,19 @@ A statistical tool that eases the analysis of InterProScan results
 by generating charts and tables with links to additional information.
 
 1. Requirements
-
-   // TODO
+   
+   Standalone requirements
+    + Python 2.6
+    + MySQL 5.1
+    + Matplotlib
+    + wxPython
+    
+   Server requirements
+    + Python 2.6
+    + MySQL 5.1
+    + Apache2
+    + PHP 5
+    + Matplotlib
 
 2. Installation
 

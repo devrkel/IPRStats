@@ -1,10 +1,15 @@
 #!/usr/bin/python
-import os, ConfigParser
+import ConfigParser
+try:
+    from pylab import *
+    pylab_avail = True
+except:
+    pylab_avail = False
+    
 from pygooglechart import PieChart2D
-from pylab import *
 import MySQLdb
 
-class IPSStatsData:
+class IPRStatsData:
     
     def __init__(self, session, config):
         self.session = session
@@ -77,10 +82,10 @@ class IPSStatsData:
     
     # Generate a chart given [(label1, label2), (value1, value2)] data
     # Returns True or False depending on if the chart was generated
-    def get_chart(self, chart_data, chart_title, chart_filename, google=True):
+    def get_chart(self, chart_data, chart_title, chart_filename, chart_type):
         if chart_data:
             [count, labels] = chart_data
-            if google:
+            if chart_type == 'google':
                 chart = PieChart2D(730, 300)
                 chart.set_colours(('66FF66', 'FFFF66', '66FF99'))
                 chart.set_title(chart_title)
@@ -88,10 +93,10 @@ class IPSStatsData:
                 chart.set_pie_labels(list(labels))
                 try:
                     chart.download(chart_filename)
-                    chart_generated = True
+                    return True
                 except:
                     chart_generated = False
-            if not google or not chart_generated:
+            if (chart_type == 'pylab' or not chart_generated) and pylab_avail:
                 try:
                     figure(figsize=(7, 2), dpi=150)
                     axis('scaled')
@@ -103,6 +108,7 @@ class IPSStatsData:
                     return True
                 except:
                     return False
+            return False
     
     # Sets the match cursor for iterating through the matches
     def init_match_data(self, app, limit=35):
@@ -161,7 +167,7 @@ class IPSStatsData:
 if __name__ == '__main__':
     config = ConfigParser.ConfigParser()
     config.readfp(open('ipsstats.cfg'))
-    i = IPSStatsData('Xs7O4pYH',config)
+    i = IPRStatsData('Xs7O4pYH',config)
     i.init_match_data('TIGRFAMs')
     while True:
         row = i.get_link_data_row()

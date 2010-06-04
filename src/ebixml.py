@@ -149,15 +149,16 @@ class EBIXML(ContentHandler):
 
 if __name__ == '__main__':
     filelist=  []
-    parse_outfile = sys.stdout
+    outdir = None
     session = None
     usage = "Usage: ebixml.py [-c | --config= <config_file>] " + \
-						"[-o | --outfile= <sql_output_file>] [-s | --session= " + \
-						"<unique_identifier>] <xml_file ...>"
+						"[-o | --output= <output_directory>] " + \
+                        "[-s | --session= <unique_identifier>] " +\
+                        "<xml_file ...>"
     
     # 
     try:
-        opts, args = getopt.getopt(sys.argv[1:],"h:c:o:s:",["help","config=","outfile=","session="])
+        opts, args = getopt.getopt(sys.argv[1:],"h:c:o:s:",["help","config=","output=","session="])
     except getopt.GetoptError:
         print usage
         sys.exit(2)
@@ -169,8 +170,8 @@ if __name__ == '__main__':
         elif o in ("-c", "--config"):
             config = ConfigParser.ConfigParser()
             config.readfp(open(a))
-        elif o in ("-o", "--outfile"):
-            parse_outfile = a
+        elif o in ("-o", "--output"):
+            outdir = a
         elif o in ("-s", "--session"):
             session = a
         else:
@@ -192,17 +193,16 @@ if __name__ == '__main__':
                
         print "doing", filename
         
-        if config:
-            path = os.path.join(config.get('html','directory'),session)
+        if outdir:
+            path = os.path.join(outdir, session)
         else:
-            path = os.path.join(session)
+            path = os.path.join(config.get('html','directory'), session)
             
         if not(os.path.exists(path)):
             os.mkdir(path)
         
-        if parse_outfile is sys.stdout:
-            parse_outfile = os.path.join(path,
-                    os.path.splitext(os.path.basename(filename))[0] + ".iprscan.sql")
+        outfile = os.path.join(path,
+            os.path.splitext(os.path.basename(filename))[0] + ".iprscan.sql")
 
         # Create a parser
         parser = make_parser()
@@ -211,10 +211,10 @@ if __name__ == '__main__':
         parser.setFeature(feature_namespaces, 0)
 
         # Create the Handler
-        if parse_outfile is not sys.stdout:
-            exh = EBIXML(session, config=config,outfile=open(parse_outfile,"w"))
+        if outfile:
+            exh = EBIXML(session, config=config,outfile=open(outfile,"w"))
         else:
-            exh = EBIXML(session, config=config)
+            raise Exception, "No output file specified."
 
         parser.setContentHandler(exh)
         parser.parse(filename)

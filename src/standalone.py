@@ -4,7 +4,7 @@
 
 import string, os, wx, wx.grid
 from ebixml import EBIXML
-from ipsstatsdata import IPSStatsData
+from iprstatsdata import IPRStatsData
 from export_html import export_html
 from export_xls import export_xls
 import ConfigParser
@@ -27,7 +27,7 @@ class IPSStats_Frame(wx.Frame):
                     'PRODOM','PROFILE', 'PROSITE', 'SMART', 'SUPERFAMILY', 'TIGRFAMs']
 
         self.config = ConfigParser.ConfigParser()
-        self.config.readfp(open('ipsstats.cfg'))
+        self.config.readfp(open('iprstats.cfg'))
         if not os.path.exists('.session'): os.mkdir('.session')
         self.session = None
         self.database_results = wx.Notebook(self, -1, style=wx.NB_LEFT)
@@ -169,7 +169,7 @@ class IPSStats_Frame(wx.Frame):
         del parser
     
     def PopulateGUI(self):
-        ipsstat = IPSStatsData(self.session, self.config)
+        ipsstat = IPRStatsData(self.session, self.config)
         for app in self.apps:
             ipsstat.init_match_data(app)
             

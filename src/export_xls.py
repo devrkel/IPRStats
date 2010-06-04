@@ -2,14 +2,14 @@
 import sys, os, getopt
 import ConfigParser
 import xlwt
-from ipsstatsdata import IPSStatsData
+from iprstatsdata import IPRStatsData
 
 # used to export database information as a spreadsheet
 class export_xls:
     
     def __init__(self, session, config):
         self.session = session
-        self.ipsstats = IPSStatsData(session, config)
+        self.ipsstats = IPRStatsData(session, config)
         self.apps = ['PFAM', 'PIR', 'GENE3D', 'HAMAP', 'PANTHER', 'PRINTS',
             'PRODOM','PROFILE', 'PROSITE', 'SMART', 'SUPERFAMILY', 'TIGRFAMs']
         

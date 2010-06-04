@@ -1,7 +1,7 @@
 #!/usr/bin/python
 import sys, os, shutil, getopt
 import ConfigParser
-from ipsstatsdata import IPSStatsData
+from iprstatsdata import IPRStatsData
 
 # Used to construct the html dom tree
 class _html_el:
@@ -75,7 +75,7 @@ class export_html:
     
     def __init__(self, session, config):
         self.session = session
-        self.ipsstats = IPSStatsData(session, config)
+        self.ipsstats = IPRStatsData(session, config)
         self.apps = ['PFAM', 'PIR', 'GENE3D', 'HAMAP', 'PANTHER', 'PRINTS',
             'PRODOM','PROFILE', 'PROSITE', 'SMART', 'SUPERFAMILY', 'TIGRFAMs']
         
@@ -93,9 +93,9 @@ class export_html:
     
     # Saves a pie chart given [(label1, label2),(value1, value2)] to chart_filename
     # Returns an img object to the filename if creation was successful
-    def _generate_chart(self, chart_data, chart_title, chart_filename):
+    def _generate_chart(self, chart_data, chart_title, chart_filename, chart_type=None):
         
-        if self.ipsstats.get_chart(chart_data, chart_title, chart_filename):
+        if self.ipsstats.get_chart(chart_data, chart_title, chart_filename, chart_type):
             img = _html_el('img', {}, [])
             img.append_attr('src', os.path.basename(chart_filename))
             img.append_attr('alt', chart_title)
@@ -152,7 +152,7 @@ class export_html:
     
     # Generates an entire page complete with menus, charts, and tables
     # TODO: write incrementally so that an entire page is not in memory
-    def generate_page(self, app, directory=None, menu=True):
+    def generate_page(self, app, directory=None, menu=True, chart_type=None):
         # Standard header for each page
         page = _html_el('html',{'xmlns':'http://www.w3.org/1999/xhtml'},[])
         head = page.append_child('head',{},[])
@@ -180,7 +180,7 @@ class export_html:
         counts = self.ipsstats.get_counts(app)
         if directory: chart_filename = os.path.join(directory, app.lower()+'_matches.png')
         else: chart_filename = app.lower()+'_matches.png'
-        chart = self._generate_chart(counts, app+' Matches', chart_filename)
+        chart = self._generate_chart(counts, app+' Matches', chart_filename, chart_type)
         if chart: content.append_child(chart)
         
         # Generate table
@@ -198,27 +198,28 @@ class export_html:
         print >> file_handle, page.get_html()
         file_handle.close
     
-    def export(self, app=None, directory=None):
+    def export(self, app=None, directory=None, chart=None):
         
         if directory:
             shutil.copyfile('style.css', os.path.join(directory,'style.css'))
         
         if app:
-            eh.generate_page(app, directory, False)
+            eh.generate_page(app, directory, menu=False, chart_type=chart)
         else:
             for app in self.apps:
-                self.generate_page(app, directory)
+                self.generate_page(app, directory, chart_type=chart)
 
 if __name__ == '__main__':
 
-    usage = "Usage: export_html.py -c <config_file> -s <session_id> [-a <db_application> -o <output_directory>]"
+    usage = "Usage: export_html.py -c <config_file> -s <session_id> [-a <db_application> -o <output_directory> -t <chart_type>]"
     app = None
     session = None
     config_file = None
     exp_dir = None
+    chart_type = None
     
     try:
-        opts, args = getopt.getopt(sys.argv[1:],"h:a:c:s:o:",["help","app=","config=","session=","output="])
+        opts, args = getopt.getopt(sys.argv[1:],"h:a:c:s:o:",["help","app=","config=","session=","output=","chart="])
     except getopt.GetoptError:
         print usage
         sys.exit(2)
@@ -235,9 +236,11 @@ if __name__ == '__main__':
             session = a
         elif o in ("-o", "--output"):
             exp_dir = a
+        elif o in ("--chart"):
+            chart_type = a.lower()
         else:
             pass
-
+    
     if config_file and session:
         config = ConfigParser.ConfigParser()
         config.readfp(open(config_file))
@@ -246,5 +249,5 @@ if __name__ == '__main__':
         sys.exit(2)
     
     eh = export_html(session, config)
-    eh.export(app, exp_dir)
+    eh.export(app, exp_dir, chart=chart_type)
     #'''

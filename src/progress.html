@@ -1,0 +1,61 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+		<title>IPRStats XML File Upload</title>
+		<link href="style.css" rel="stylesheet" type="text/css" />
+		<script type="text/javascript">
+			function update(txturl) {
+				var updateRequest = false;
+				var self = this;
+				// Chrome/Mozilla/Safari
+				if (window.XMLHttpRequest) {
+					self.updateRequest = new XMLHttpRequest();
+				}
+				// IE
+				else if (window.ActiveXObject) {
+					self.updateRequest = new ActiveXObject("Microsoft.XMLHTTP");
+				}
+				self.updateRequest.open('GET', txturl, true);
+				self.updateRequest.onreadystatechange = function() {
+					if (self.updateRequest.readyState == 4) {
+						updateStatus(self.updateRequest.responseText);
+					}
+				}
+				self.updateRequest.send();
+			}
+			
+			function updateStatus(updateStr) {
+				var session = window.location.href.split("?")[1];
+				document.getElementById('content').innerHTML = updateStr;
+				//setTimeout('updateRequest(\'index.html\')', 5000);
+			}
+		</script>
+	</head>
+	<body onLoad="update('index.html')">
+		<div id="container">
+			<div id="header">
+				<h1>IPRStats</h1>
+				<ul id="tabs">
+					<li><a href="#">Home</a></li>
+					<li><a href="index.php">Upload File</a></li>
+				</ul>
+			</div>
+			<div id="middlesec">
+				<ul id="navigation">
+				</ul>
+				<div id="content">
+					<noscript>
+						You must have javascript enabled to get automatic
+						updates of your request. You may see if your file
+						has finished by // TODO
+					</noscript>
+				</div>
+			</div>
+			<div id="footer">
+				Meta IPS was developed through Miami University's
+				Undergraduate Summers Scholars program.
+			</div>
+		</div>
+ 	</body>
+</html>

@@ -82,9 +82,10 @@ class IPRStatsData:
     
     # Generate a chart given [(label1, label2), (value1, value2)] data
     # Returns True or False depending on if the chart was generated
-    def get_chart(self, chart_data, chart_title, chart_filename, chart_type):
+    def get_chart(self, chart_data, chart_title, chart_filename, chart_type='pylab'):
         if chart_data:
             [count, labels] = chart_data
+            chart_generated = False
             if chart_type == 'google':
                 chart = PieChart2D(730, 300)
                 chart.set_colours(('66FF66', 'FFFF66', '66FF99'))

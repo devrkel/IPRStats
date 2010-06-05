@@ -41,8 +41,11 @@ class EBIXML(ContentHandler):
                                     passwd=self.config.get('local db','passwd'),
                                     db=self.config.get('local db','db'))
             self.db_cursor = self.db_con.cursor()
-            self.db_cursor.execute("SELECT MAX(pim_id) FROM protein_interpro_match;")
-            self.pim_id = self.db_cursor.fetchall()[0][0]
+            try:
+                self.db_cursor.execute("SELECT MAX(pim_id) FROM protein_interpro_match;")
+                self.pim_id = self.db_cursor.fetchall()[0][0]
+            except:
+                self.pim_id = 1
             
             db_struct = open('structure.sql', 'r')
             struct_sql = db_struct.read() % ((self.session,)*7)
@@ -143,7 +146,7 @@ class EBIXML(ContentHandler):
                       (self.config.get('local db','db'), self.config.get('local db','user'),
                        self.config.get('local db','host'), self.config.get('local db','passwd'),
                        self.outfile.name))
-            log = open(os.path.join(self.config.get('html','directory'),
+            log = open(os.path.join(self.config.get('general','directory'),
                                     'tbl_creation.log'), 'a')
             log.write(str(time.ctime()) + "\t" + self.session + "\n")
 
@@ -196,7 +199,7 @@ if __name__ == '__main__':
         if outdir:
             path = os.path.join(outdir, session)
         else:
-            path = os.path.join(config.get('html','directory'), session)
+            path = os.path.join(config.get('general','directory'), session)
             
         if not(os.path.exists(path)):
             os.mkdir(path)

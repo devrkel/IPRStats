@@ -1,0 +1,37 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+		<title>IPRStats XML File Upload</title>
+		<link href="style.css" rel="stylesheet" type="text/css" />
+	</head>
+	<body>
+		<div id="container">
+			<div id="header">
+				<h1>IPRStats</h1>
+				<ul id="tabs">
+					<li><a href="#">Home</a></li>
+					<li><a href="index.php">Upload File</a></li>
+				</ul>
+			</div>
+			<div id="middlesec">
+				<ul id="navigation">
+				</ul>
+				<div id="content">
+					<form enctype="multipart/form-data" action="cgi-bin/upload.py" method="POST">
+						<!--<input type="hidden" name="MAX_FILE_SIZE" value="100000" />-->
+							<p>
+								Please select an XML file containing InterProScan output. <br />
+								<input name="uploadedfile" type="file" />
+							</p>
+						<input type="submit" value="Upload File" />
+					</form>
+				</div>
+			</div>
+			<div id="footer">
+				Meta IPS was developed through Miami University's
+				Undergraduate Summers Scholars program.
+			</div>
+		</div>
+ 	</body>
+</html>

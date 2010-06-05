@@ -7,6 +7,8 @@
 		<script type="text/javascript">
 			function update(txturl) {
 				var updateRequest = false;
+				var session = window.location.href.split("?")[1];
+				var url = 'runs/'+session+'.status'
 				var self = this;
 				// Chrome/Mozilla/Safari
 				if (window.XMLHttpRequest) {
@@ -16,7 +18,7 @@
 				else if (window.ActiveXObject) {
 					self.updateRequest = new ActiveXObject("Microsoft.XMLHTTP");
 				}
-				self.updateRequest.open('GET', txturl, true);
+				self.updateRequest.open('GET', url, true);
 				self.updateRequest.onreadystatechange = function() {
 					if (self.updateRequest.readyState == 4) {
 						updateStatus(self.updateRequest.responseText);
@@ -26,13 +28,12 @@
 			}
 			
 			function updateStatus(updateStr) {
-				var session = window.location.href.split("?")[1];
 				document.getElementById('content').innerHTML = updateStr;
-				//setTimeout('updateRequest(\'index.html\')', 5000);
+				setTimeout('update()', 5000);
 			}
 		</script>
 	</head>
-	<body onLoad="update('index.html')">
+	<body onLoad="update()">
 		<div id="container">
 			<div id="header">
 				<h1>IPRStats</h1>

@@ -1,5 +1,5 @@
 #!/usr/bin/python
-import cgi, string, os, sys
+import cgi, string, os, sys, tempfile
 import cgitb; cgitb.enable()
 import ConfigParser
 from random import choice
@@ -14,8 +14,6 @@ try: # Windows needs stdio set for binary mode.
     msvcrt.setmode (1, os.O_BINARY) # stdout = 1
 except ImportError:
     pass
-
-UPLOAD_DIR = "/tmp"
 
 def save_uploaded_file (form_field, upload_dir):
     """This saves a file uploaded by an HTML form.
@@ -41,7 +39,7 @@ def save_uploaded_file (form_field, upload_dir):
 print "content-type: text/html\n"
 
 # Save the uploaded file temporarily
-filepath = save_uploaded_file ("uploadedfile", "/tmp")
+filepath = save_uploaded_file ("uploadedfile", tempfile.gettempdir())
 
 # Open the configuration file
 try:
@@ -56,6 +54,24 @@ except:
 chars = string.letters + string.digits
 session = ''.join([choice(chars) for i in xrange(8)])
 
+if os.fork():
+    print '<META HTTP-EQUIV="Refresh" CONTENT="0; URL=../progress.html?'+session+'">'
+    sys.exit()
+
+# Prevent child process from tying up parent
+sys.stdin.close()
+sys.stdout.close()
+sys.stderr.close()
+os.close(0)
+os.close(1)
+os.close(2)
+
+# Open log file for writing
+log = file(os.path.join(exp_dir,session+'.status'), 'a')
+log.write('Opening session ' + session + '...<br />')
+log.write('Beginning to parse file ' + os.path.basename(filepath) + '...<br />')
+log.flush()
+
 # Create a parser
 parser = make_parser()
 
@@ -63,16 +79,21 @@ parser = make_parser()
 parser.setFeature(feature_namespaces, 0)
 
 # Create the Handler and parse the XML
-exh = EBIXML(session, config=config,outfile=open(os.path.join('/tmp',session+'.sql'),"w"))
+exh = EBIXML(session, config=config,outfile=open(os.path.join(tempfile.gettempdir(),session+'.sql'),"w"))
 parser.setContentHandler(exh)
 parser.parse(filepath)
-print "Done", filepath, "Session", session
 del parser
+
+log.write('Done parsing file ' + os.path.basename(filepath) + '!<br />')
+log.write('Creating HTML...<br />')
+log.flush()
+
+exp_dir = os.path.join(exp_dir, session)
+if not os.path.exists(exp_dir): os.mkdir(exp_dir)
 
 # Export the HTML
 eh = export_html(session, config)
 eh.export(directory=exp_dir, chart='google')
 
-print "content-type: text/html\n"
-print '<META HTTP-EQUIV="Refresh" CONTENT="0; URL=../progress.html?'+session+'">'
-
+log.write('Done! <a href="runs/'+session+'/gene3d.html">Click here</a>')
+log.close()

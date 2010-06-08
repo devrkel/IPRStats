@@ -70,8 +70,8 @@ class IPRStatsData:
     def get_counts(self, app, limit=35):
         count_by_name = []
         self.count_cursor.execute("SELECT name, count(1) as count FROM %s_iprmatch " % (self.session) + 
-                        "WHERE db_name ='%s' GROUP BY name " % (app) + 
-                        "ORDER BY count DESC LIMIT %s" % (limit))
+                        "WHERE db_name ='%s' GROUP BY id " % (app) + 
+                        "ORDER BY count DESC, id asc, name asc LIMIT %s" % (limit))
         for row in self.count_cursor:
             count_by_name.append((int(row[1]), (row[0])))
         
@@ -114,17 +114,53 @@ class IPRStatsData:
     # Sets the match cursor for iterating through the matches
     def init_match_data(self, app, limit=35):
         self.current_app = app
-        self.match_cursor.execute("""select I.name, I.id, class_id, M.count
-            from 
-                (%s_iprmatch as I join %s_protein_interpro_match as P 
-                on I.pim_id = P.pim_id join %s_protein_classification
-                as C on P.protein_id = C.protein_id join (select name,
-                count(1) as count from %s_iprmatch where db_name = '%s'
-                group by name order by count desc limit %s) as M on
-                I.name = M.name)
-            where db_name = '%s'
-            group by class_id
-            order by M.count DESC, name ASC;""" % (self.session, self.session, self.session, self.session, app, limit, app))
+        '''
+        self.match_cursor.execute("""
+            select I.name, I.id, class_id, M.count
+            from   %s_iprmatch as I
+                   join %s_protein_interpro_match as P on I.pim_id = P.pim_id
+                   join %s_protein_classification as C on P.protein_id = C.protein_id
+                   join
+                       (select   name, count(1) as count
+                        from     %s_iprmatch
+                        where    db_name = '%s'
+                        group by name
+                        order by count desc
+                        limit %s)
+                   as M on I.name = M.name)
+            where  db_name = '%s'
+            group  by class_id
+            order  by M.count DESC, name ASC;""" % (self.session, self.session, self.session, self.session, app, limit, app))
+
+        self.match_cursor.execute("""
+            select   C.name, B.match_id, A.class_id, C.count
+            from     %s_protein_classification as A
+                     join %s_protein_interpro_match as B on A.protein_id = B.protein_id
+                     join (
+                       select   name, pim_id, count(1) as count
+                       from     %s_iprmatch
+                       where    db_name = '%s'
+                       group by id
+                       order by count desc, id asc, name asc
+                       limit %s
+                     ) as C on B.pim_id = C.pim_id
+            group by A.class_id
+            order by C.count desc, C.name asc;""" % (self.session, self.session, self.session, app, limit))
+        '''
+        self.match_cursor.execute("""
+            select   C.name, B.match_id, A.class_id, C.count
+            from     %s_protein_classification as A
+                     join %s_protein_interpro_match as B on A.protein_id = B.protein_id
+                     join (
+                           select   name, pim_id, count(1) as count
+                           from     %s_iprmatch
+                           where    db_name = '%s'
+                           group by id
+                           order by count desc, id asc, name asc
+                           limit    %s
+                          ) as C on B.pim_id = C.pim_id
+            group by A.class_id
+            order by C.count desc, C.name asc;""" %(self.session, self.session, self.session, app, limit))
 
     # Get the raw database results from the match data query
     # Returns (Name, DB_ID, GO_ID, Count) or None
@@ -132,7 +168,7 @@ class IPRStatsData:
         return self.match_cursor.fetchone()
     
     # Appends the database url and GO url to the raw match data
-    # Returns (DB_Name, DB_URL, Count, GO_Name, GO_URL) or None
+    # Returns (DB_ID, DB_Name, DB_URL, Count, GO_Name, GO_URL) or None
     def get_link_data_row(self):
         row = self.get_raw_match_data_row()
         if row:
@@ -145,9 +181,9 @@ class IPRStatsData:
             
             if self.go_lookup:
                 go_info = self.retrieve_go_info(go_id)
-                return name, db_url, count, go_info[0], go_url, go_info[1]
+                return db_id, name, db_url, count, go_info[0], go_url, go_info[1]
             else:
-                return name, db_url, count, go_id, go_url
+                return db_id, name, db_url, count, go_id, go_url
         else:
             return None
     

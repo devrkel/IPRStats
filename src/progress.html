@@ -28,6 +28,7 @@
 			}
 			
 			function updateStatus(updateStr) {
+				updateStr = updateStr.replace(/\n/g, "<br />\n")
 				document.getElementById('content').innerHTML = updateStr;
 				setTimeout('update()', 5000);
 			}
@@ -54,8 +55,6 @@
 				</div>
 			</div>
 			<div id="footer">
-				Meta IPS was developed through Miami University's
-				Undergraduate Summers Scholars program.
 			</div>
 		</div>
  	</body>

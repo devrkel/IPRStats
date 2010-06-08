@@ -54,11 +54,14 @@ except:
 chars = string.letters + string.digits
 session = ''.join([choice(chars) for i in xrange(8)])
 
+# Parent exits so that the scripts can run without tying up the
+# user's browser; redirects them to a "progress" page.
 if os.fork():
     print '<META HTTP-EQUIV="Refresh" CONTENT="0; URL=../progress.html?'+session+'">'
     sys.exit()
 
-# Prevent child process from tying up parent
+# Close stdin, stdout, and stderr which would otherwise
+# make the parent wait for children to finish before exiting
 sys.stdin.close()
 sys.stdout.close()
 sys.stderr.close()
@@ -68,8 +71,8 @@ os.close(2)
 
 # Open log file for writing
 log = file(os.path.join(exp_dir,session+'.status'), 'a')
-log.write('Opening session ' + session + '...<br />')
-log.write('Beginning to parse file ' + os.path.basename(filepath) + '...<br />')
+log.write('Opening session ' + session + '...\n')
+log.write('Beginning to parse file ' + os.path.basename(filepath) + '...\n')
 log.flush()
 
 # Create a parser
@@ -84,8 +87,8 @@ parser.setContentHandler(exh)
 parser.parse(filepath)
 del parser
 
-log.write('Done parsing file ' + os.path.basename(filepath) + '!<br />')
-log.write('Creating HTML...<br />')
+log.write('Done parsing file ' + os.path.basename(filepath) + '!\n')
+log.write('Creating HTML...\n')
 log.flush()
 
 exp_dir = os.path.join(exp_dir, session)
@@ -95,5 +98,5 @@ if not os.path.exists(exp_dir): os.mkdir(exp_dir)
 eh = export_html(session, config)
 eh.export(directory=exp_dir, chart='google')
 
-log.write('Done! <a href="runs/'+session+'/gene3d.html">Click here</a>')
+log.write('Done! <a href="runs/'+session+'/gene3d.html">Click here</a>\n')
 log.close()

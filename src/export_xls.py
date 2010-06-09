@@ -44,17 +44,19 @@ class export_xls:
             row = self.ipsstats.get_link_data_row()
             if row:
                 r += 1
-                sheet.write(r, 0, row[2])
-                sheet.write(r, 1, row[0])
-                sheet.write(r, 2, row[3])
-                sheet.write(r, 3, row[1])
-                sheet.write(r, 4, row[4])
-                if len(row) == 6:
-                    sheet.write(r, 5, row[5])
+                sheet.write(r, 0, row[3]) # Count
+                sheet.write(r, 1, row[1]) # DB Name
+                sheet.write(r, 2, row[0]) # DB ID
+                sheet.write(r, 3, row[4]) # GO Name
+                #                         # GO ID
+                sheet.write(r, 5, row[2]) # DB URL
+                sheet.write(r, 6, row[5]) # GO URL
+                if len(row) == 7:
+                    sheet.write(r, 7, row[6]) # GO Definition
             else:
                 break
     
-    def export(self, app=None, directory=None):
+    def export(self, app=None, filename=None):
         xls_doc = xlwt.Workbook()
         
         if app:
@@ -63,8 +65,8 @@ class export_xls:
             for app in self.apps:
                 self.generate_sheet(app, xls_doc)
         
-        if directory:
-            xls_doc.save(os.path.join(directory, 'test.xls'))
+        if filename:
+            xls_doc.save(filename)
         else:
             xls_doc.save('test.xls')
 

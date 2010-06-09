@@ -114,39 +114,6 @@ class IPRStatsData:
     # Sets the match cursor for iterating through the matches
     def init_match_data(self, app, limit=35):
         self.current_app = app
-        '''
-        self.match_cursor.execute("""
-            select I.name, I.id, class_id, M.count
-            from   %s_iprmatch as I
-                   join %s_protein_interpro_match as P on I.pim_id = P.pim_id
-                   join %s_protein_classification as C on P.protein_id = C.protein_id
-                   join
-                       (select   name, count(1) as count
-                        from     %s_iprmatch
-                        where    db_name = '%s'
-                        group by name
-                        order by count desc
-                        limit %s)
-                   as M on I.name = M.name)
-            where  db_name = '%s'
-            group  by class_id
-            order  by M.count DESC, name ASC;""" % (self.session, self.session, self.session, self.session, app, limit, app))
-
-        self.match_cursor.execute("""
-            select   C.name, B.match_id, A.class_id, C.count
-            from     %s_protein_classification as A
-                     join %s_protein_interpro_match as B on A.protein_id = B.protein_id
-                     join (
-                       select   name, pim_id, count(1) as count
-                       from     %s_iprmatch
-                       where    db_name = '%s'
-                       group by id
-                       order by count desc, id asc, name asc
-                       limit %s
-                     ) as C on B.pim_id = C.pim_id
-            group by A.class_id
-            order by C.count desc, C.name asc;""" % (self.session, self.session, self.session, app, limit))
-        '''
         self.match_cursor.execute("""
             select   C.name, B.match_id, A.class_id, C.count
             from     %s_protein_classification as A

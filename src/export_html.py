@@ -160,12 +160,12 @@ class export_page(Thread):
         page = _html_el('html',{'xmlns':'http://www.w3.org/1999/xhtml'},[])
         head = page.append_child('head',{},[])
         head.append_child('meta',{'http-equiv':'Content-Type','content':'text/html; charset=utf-8'}, None)
-        head.append_child('title',{},'IPS Stats XML File Upload')
+        head.append_child('title',{},'IPRStats Results')
         head.append_child('link',{'href':'style.css','rel':'stylesheet','type':'text/css'},None)
         body = page.append_child('body',{},[])
         container = body.append_child('div',{'id':'container'},[])
         header = container.append_child('div',{'id':'header'},[])
-        header.append_child('h1',{},'IPS Stats')
+        header.append_child('h1',{},'IPRStats')
         tabs = header.append_child('ul',{'id':'tabs'},[])
         tabs.append_child('li',{},[]).append_child('a',{'href':'../../'},'Upload')
         
@@ -206,9 +206,7 @@ class export_html:
         self.session = session
         self.config = config
         self.iprstatsdata = IPRStatsData(session, config)
-        self.apps = ['PFAM', 'PIR', 'GENE3D', 'HAMAP', 'PANTHER', 'PRINTS',
-            'PRODOM','PROFILE', 'PROSITE', 'SMART', 'SUPERFAMILY', 'TIGRFAMs']
-        
+        self.apps = self.config.get('general','apps').replace('\n',' ').split(', ')
         self.path = os.path.join(config.get('html','directory'), self.session)
     
     # Generates a generic link object with link_name and link_url

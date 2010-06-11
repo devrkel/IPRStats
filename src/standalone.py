@@ -38,8 +38,9 @@ class IPRStats_Frame(wx.Frame):
         self.grids = {}
 
         for app in self.apps:
-            self.tabs[app] = wx.ScrolledWindow(self.database_results, -1, style=wx.TAB_TRAVERSAL)
+            self.tabs[app] = wx.Panel(self.database_results, -1, style=wx.TAB_TRAVERSAL)
             self.charts[app] = wx.StaticBitmap(self.tabs[app], -1)
+            self.charts[app].Hide()
             self.grids[app] = wx.grid.Grid(self.tabs[app], -1, size=(1, 1))
         
         # Menu Bar
@@ -287,31 +288,35 @@ certification process.
         self.SetSize((740, 600))
 
         for app in self.apps:
-            self.charts[app].SetMinSize((720, 220))
+            self.charts[app].SetSize((1,1))
             self.grids[app].CreateGrid(0, 3)
             self.grids[app].DisableDragRowSize()
             self.grids[app].SetColLabelValue(0, "Name")
             self.grids[app].SetColLabelValue(1, "Count")
             self.grids[app].SetColLabelValue(2, "Link")
             self.grids[app].SetRowLabelSize(0)
-            self.grids[app].SetColSize(0,280)
+            self.grids[app].SetColSize(0,250)
             self.grids[app].SetColSize(1,150)
             self.grids[app].SetColSize(2,280)
-            self.tabs[app].SetScrollRate(10, 10)
-        self.database_results.SetMinSize((490, 511))
+            self.tabs[app].SetBackgroundColour('white')
         # end wxGlade
 
     def __do_layout(self):
         # begin wxGlade: MetaIPS_Frame.__do_layout
-        main_sizer = wx.BoxSizer(wx.VERTICAL)
+        main_sizer = wx.FlexGridSizer(1, 1, 0, 0)
         for app in self.apps:
-            sizer = wx.BoxSizer(wx.VERTICAL)
-            sizer.Add(self.charts[app], 0, wx.ALIGN_CENTER_HORIZONTAL|wx.ADJUST_MINSIZE, 0)
+            sizer = wx.FlexGridSizer(2, 1, 0, 0)
+            sizer.Add(self.charts[app], 0, wx.ALIGN_CENTER_HORIZONTAL, 0)
             sizer.Add(self.grids[app], 1, wx.EXPAND|wx.ALIGN_CENTER_HORIZONTAL, 0)
             self.tabs[app].SetSizer(sizer)
             self.database_results.AddPage(self.tabs[app], app)
+            sizer.AddGrowableRow(1)
+            sizer.AddGrowableCol(0)
+        main_sizer.AddGrowableRow(0)
+        main_sizer.AddGrowableCol(0)
         main_sizer.Add(self.database_results, 0, wx.EXPAND, 0)
         self.SetSizer(main_sizer)
+        #self.main_sizer.Fit(self)
         self.Layout()
         self.SetSize((840, 600))
         # end wxGlade
@@ -319,7 +324,7 @@ certification process.
     def OnOpen(self, event): # wxGlade: MetaIPS_Frame.<event_handler>
         """ Open a file"""
         self.dirname = ''
-        dlg = wx.FileDialog(self, "Choose a file", self.dirname, "", "*.out", wx.OPEN)
+        dlg = wx.FileDialog(self, "Choose a file", self.dirname, "", "XML out (*.out)|*.out|XML (*.xml)|*.xml|View all files (*.*)|*.*", wx.OPEN)
         if dlg.ShowModal() == wx.ID_OK:
             self.filename = dlg.GetFilename()
             self.dirname = dlg.GetDirectory()
@@ -390,9 +395,12 @@ certification process.
             counts = ipsstat.get_counts(app)
             chart_filename = os.path.join(self.sessiondir,self.session,app.lower()+'_matches.png')
             if ipsstat.get_chart(counts, app+' Matches', chart_filename, self.chart_type):
-                self.charts[app].SetBitmap(wx.Bitmap(chart_filename, wx.BITMAP_TYPE_ANY))
+                chart_img = wx.Bitmap(chart_filename, wx.BITMAP_TYPE_ANY)
+                self.charts[app].SetBitmap(chart_img)
+                self.charts[app].SetMinSize(chart_img.GetSize())
+                self.charts[app].Show()
             else:
-                self.charts[app].SetBitmap(wx.EmptyBitmapRGBA(700,200))
+                self.charts[app].Hide()
                 
                 
             r = 0
@@ -403,26 +411,27 @@ certification process.
                 if not row:
                     break
 
+                link_font = wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, True)
                 if row[0] != current_id:
                     current_id = row[0]
-                    self.grids[app].AppendRows()
-                    self.grids[app].SetCellValue(r, 0, row[1])
-                    self.grids[app].SetCellValue(r, 1, str(row[3]))
-                    self.grids[app].SetCellValue(r, 2, str(row[2]))
-                    #self.grids[app].SetCellRenderer(r, 2, MyCustomRenderer())
-                    self.grids[app].SetReadOnly(r, 0)
-                    self.grids[app].SetReadOnly(r, 1)
-                    self.grids[app].SetReadOnly(r, 2)
+                    self.PopulateGridRow(app,row[1],row[3],row[2],link_font,r)
                     r += 1
-                self.grids[app].AppendRows()
-                self.grids[app].SetCellValue(r, 1, str(row[4]))
-                self.grids[app].SetCellValue(r, 2, str(row[5]))
-                #self.grids[app].SetCellRenderer(r, 2, MyCustomRenderer())
-                self.grids[app].SetReadOnly(r, 0)
-                self.grids[app].SetReadOnly(r, 1)
-                self.grids[app].SetReadOnly(r, 2)
-                
+                    
+                self.PopulateGridRow(app,'',row[4],row[5],link_font,r)
                 r += 1;
+            self.grids[app].AutoSizeColumns()
+            self.tabs[app].Fit()
+                
+    def PopulateGridRow(self, app, cell1, cell2, cell3, link_font, rownum):
+        self.grids[app].AppendRows()
+        self.grids[app].SetCellValue(rownum, 0, cell1)
+        self.grids[app].SetCellValue(rownum, 1, str(cell2))
+        self.grids[app].SetCellValue(rownum, 2, str(cell3))
+        self.grids[app].SetCellFont (rownum, 2, link_font)
+        self.grids[app].SetCellTextColour(rownum, 2, 'blue')
+        self.grids[app].SetReadOnly(rownum, 0)
+        self.grids[app].SetReadOnly(rownum, 1)
+        self.grids[app].SetReadOnly(rownum, 2)
     
     def OnCellLeftClick(self, event):
         grid = event.GetEventObject()
@@ -432,29 +441,6 @@ certification process.
         event.Skip()
     
 # end of class MetaIPS_Frame
-
-class MyCustomRenderer(wx.grid.PyGridCellRenderer):
-    def __init__(self):
-        wx.grid.PyGridCellRenderer.__init__(self)
-
-    def Draw(self, grid, attr, dc, rect, row, col, isSelected):
-        dc.SetClippingRect(rect)
-        dc.SetBackgroundMode(wx.SOLID)
-        dc.SetBrush(wx.Brush(wx.WHITE, wx.SOLID))
-        dc.SetPen(wx.Pen(wx.WHITE, 1, wx.SOLID))
-        dc.DrawRectangleRect(rect)
-        text = grid.GetCellValue(row, col)
-        dc.SetBackgroundMode(wx.SOLID)
-        dc.SetBrush(wx.Brush("blue", wx.SOLID))
-        dc.SetTextBackground("white")
-        dc.SetTextForeground("blue")
-        dc.DrawText(text, rect.x+3, rect.y+3)
-        dc.SetTextForeground('blue')
-        dc.DestroyClippingRegion()
-        
-    def Clone(self):
-        return MyCustomRenderer()
-
 
 class SettingsDlg(wx.Dialog):
     def __init__(self, parent, id, title, config):

@@ -23,13 +23,20 @@ class IPRStats_Frame(wx.Frame):
         kwds["style"] = wx.DEFAULT_FRAME_STYLE
         wx.Frame.__init__(self, *args, **kwds)
         
+        self.configpath = 'iprstats.cfg'
         self.config = ConfigParser.ConfigParser()
-        self.config.readfp(open('iprstats.cfg'))
+        configfile = open(self.configpath, 'r')
+        self.config.readfp(configfile)
+        configfile.close()
         
         self.apps = self.config.get('general','apps').replace('\n',' ').split(', ')
         self.sessiondir = self.config.get('general','directory')
         self.chart_type = self.config.get('general','chart_type')
-        if not os.path.exists(self.sessiondir): os.mkdir(self.sessiondir)
+        if not os.path.exists(self.sessiondir):
+            try:
+                os.mkdir(self.sessiondir)
+            except:
+                self.sessiondir = tempfile.gettempdir()
         
         self.session = None
         self.database_results = wx.Notebook(self, -1, style=wx.NB_LEFT)
@@ -380,9 +387,30 @@ certification process.
         self.Close(True)
         
     def OnSettings(self, event):
-        settings = SettingsDlg(None, -1, 'Change Settings', self.config)
-        settings.ShowModal()
-        settings.Destroy()
+        dlg = SettingsDlg(None, -1, 'Change Settings', self.config)
+        if dlg.ShowModal() == wx.ID_OK:
+            self.sessiondir = dlg.SessionDirTxt.GetValue()
+            self.chart_type = dlg.ChartTypeCmb.GetValue().lower()
+            self.config.set('general', 'directory', self.sessiondir)
+            self.config.set('general', 'chart_type', self.chart_type)
+            self.config.set('general', 'go_lookup', dlg.GOLookupCmb.GetValue())
+            self.config.set('local db', 'host', dlg.LDBHostTxt.GetValue())
+            self.config.set('local db', 'user', dlg.LDBUserTxt.GetValue())
+            self.config.set('local db', 'passwd', dlg.LDBPasswrdTxt.GetValue())
+            self.config.set('local db', 'port', dlg.LDBPortSpn.GetValue())
+            self.config.set('local db', 'db', str(dlg.LDBDatabaseTxt.GetValue()))
+            self.config.set('go db', 'host', dlg.LDBHostTxt.GetValue())
+            self.config.set('go db', 'user', dlg.LDBUserTxt.GetValue())
+            self.config.set('go db', 'passwd', dlg.LDBPasswrdTxt.GetValue())
+            self.config.set('go db', 'port', dlg.LDBPortSpn.GetValue())
+            self.config.set('go db', 'db', str(dlg.LDBDatabaseTxt.GetValue()))
+            configfile = open(self.configpath, 'w')
+            self.config.write(configfile)
+            configfile.close
+            configfile = open(self.configpath,'r')
+            self.config.readfp(configfile)
+            configfile.close()
+        dlg.Destroy()
 
     def OnAbout(self, event): # wxGlade: MetaIPS_Frame.<event_handler>
         wx.AboutBox(self.aboutinfo)
@@ -394,6 +422,7 @@ certification process.
             
             counts = ipsstat.get_counts(app)
             chart_filename = os.path.join(self.sessiondir,self.session,app.lower()+'_matches.png')
+
             if ipsstat.get_chart(counts, app+' Matches', chart_filename, self.chart_type):
                 chart_img = wx.Bitmap(chart_filename, wx.BITMAP_TYPE_ANY)
                 self.charts[app].SetBitmap(chart_img)
@@ -481,6 +510,7 @@ class SettingsDlg(wx.Dialog):
         self.SessionDirLbl = wx.StaticText(self.GeneralTab, -1, "Session directory:  ")
         self.SessionDirBtn = wx.Button(self.GeneralTab, -1, "...")
         self.ChartTypeLbl = wx.StaticText(self.GeneralTab, -1, "Chart type:  ")
+        self.GOLookupLbl = wx.StaticText(self.GeneralTab, -1, "GO lookup:  ")
         self.LDBHostLbl = wx.StaticText(self.DBSettingsTab, -1, "Host:  ")
         self.LDBUserLbl = wx.StaticText(self.DBSettingsTab, -1, "User:  ")
         self.LDBPasswrdLbl = wx.StaticText(self.DBSettingsTab, -1, "Password: ")
@@ -514,14 +544,20 @@ class SettingsDlg(wx.Dialog):
         GDBOptionsSzr = wx.FlexGridSizer(5, 2, 3, 0)
         LDBSzr = wx.StaticBoxSizer(self.LDBSzr_staticbox, wx.HORIZONTAL)
         LDBOptionsSzr = wx.FlexGridSizer(5, 2, 3, 0)
-        GeneralSzr = wx.FlexGridSizer(2, 3, 3, 0)
+        
+        GeneralSzr = wx.FlexGridSizer(3, 3, 3, 0)
         GeneralSzr.Add(self.SessionDirLbl, 0, wx.ALIGN_CENTER_VERTICAL|wx.ADJUST_MINSIZE, 0)
         GeneralSzr.Add(self.SessionDirTxt, 0, wx.EXPAND|wx.ADJUST_MINSIZE, 0)
         GeneralSzr.Add(self.SessionDirBtn, 0, wx.ADJUST_MINSIZE, 0)
         GeneralSzr.Add(self.ChartTypeLbl, 0, wx.ALIGN_CENTER_VERTICAL|wx.ADJUST_MINSIZE, 0)
         GeneralSzr.Add(self.ChartTypeCmb, 0, wx.EXPAND|wx.ADJUST_MINSIZE, 0)
+        GeneralSzr.Add((1,1), 0, wx.ADJUST_MINSIZE, 0)
+        GeneralSzr.Add(self.GOLookupLbl, 0, wx.ALIGN_CENTER_VERTICAL|wx.ADJUST_MINSIZE, 0)
+        GeneralSzr.Add(self.GOLookupCmb, 0, wx.EXPAND|wx.ADJUST_MINSIZE, 0)
+
         self.GeneralTab.SetSizer(GeneralSzr)
         GeneralSzr.AddGrowableCol(1)
+        
         LDBOptionsSzr.Add(self.LDBHostLbl, 0, wx.ALIGN_CENTER_VERTICAL|wx.ADJUST_MINSIZE, 0)
         LDBOptionsSzr.Add(self.LDBHostTxt, 0, wx.EXPAND|wx.ADJUST_MINSIZE, 0)
         LDBOptionsSzr.Add(self.LDBUserLbl, 0, wx.ALIGN_CENTER_VERTICAL|wx.ADJUST_MINSIZE, 0)
@@ -535,6 +571,7 @@ class SettingsDlg(wx.Dialog):
         LDBOptionsSzr.AddGrowableCol(1)
         LDBSzr.Add(LDBOptionsSzr, 1, wx.EXPAND, 0)
         DBSzr.Add(LDBSzr, 1, wx.EXPAND, 0)
+        
         DBSzr.Add((5, 20), 0, wx.ADJUST_MINSIZE, 0)
         GDBOptionsSzr.Add(self.GDBHostLbl, 0, wx.ALIGN_CENTER_VERTICAL|wx.ADJUST_MINSIZE, 0)
         GDBOptionsSzr.Add(self.GDBHostTxt, 0, wx.EXPAND|wx.ADJUST_MINSIZE, 0)
@@ -549,14 +586,17 @@ class SettingsDlg(wx.Dialog):
         GDBOptionsSzr.AddGrowableCol(1)
         GDBSzr.Add(GDBOptionsSzr, 1, wx.EXPAND, 0)
         DBSzr.Add(GDBSzr, 1, wx.EXPAND, 0)
+        
         self.DBSettingsTab.SetSizer(DBSzr)
         self.Tabs.AddPage(self.GeneralTab, "General")
         self.Tabs.AddPage(self.DBSettingsTab, "Database settings")
         MainSzr.Add(self.Tabs, 1, wx.EXPAND, 0)
+        
         BtnSzr.Add(self.ApplyBtn, 0, wx.ADJUST_MINSIZE, 0)
         BtnSzr.Add(self.CancelBtn, 0, wx.ADJUST_MINSIZE, 0)
         BtnSzr.Add(self.OKBtn, 0, wx.ADJUST_MINSIZE, 0)
         MainSzr.Add(BtnSzr, 1, wx.ALIGN_RIGHT, 0)
+        
         self.SetSizer(MainSzr)
         MainSzr.Fit(self)
         MainSzr.AddGrowableRow(0)
@@ -566,16 +606,17 @@ class SettingsDlg(wx.Dialog):
     
     def PopulateDialog(self):
         self.SessionDirTxt = wx.TextCtrl(self.GeneralTab,    -1, self.config.get('general','directory'))
-        self.ChartTypeCmb =  wx.ComboBox(self.GeneralTab,    -1, choices=["Google", "PyDev"], style=wx.CB_DROPDOWN)
-        self.LDBHostTxt =    wx.TextCtrl(self.DBSettingsTab, -1, self.config.get('local db','host'))
-        self.LDBUserTxt =    wx.TextCtrl(self.DBSettingsTab, -1, self.config.get('local db','user'))
+        self.ChartTypeCmb  = wx.ComboBox(self.GeneralTab,    -1, choices=["Google", "PyDev"], style=wx.CB_DROPDOWN)
+        self.GOLookupCmb   = wx.ComboBox(self.GeneralTab,    -1, choices=["True", "False"], style=wx.CB_DROPDOWN)
+        self.LDBHostTxt    = wx.TextCtrl(self.DBSettingsTab, -1, self.config.get('local db','host'))
+        self.LDBUserTxt    = wx.TextCtrl(self.DBSettingsTab, -1, self.config.get('local db','user'))
         self.LDBPasswrdTxt = wx.TextCtrl(self.DBSettingsTab, -1, self.config.get('local db','passwd'), style=wx.TE_PASSWORD)
-        self.LDBPortSpn =    wx.SpinCtrl(self.DBSettingsTab, -1, str(self.config.getint('local db','port')), min=0, max=10000)
+        self.LDBPortSpn    = wx.SpinCtrl(self.DBSettingsTab, -1, self.config.get('local db','port'), min=0, max=10000)
         self.LDBDatabaseTxt= wx.TextCtrl(self.DBSettingsTab, -1, self.config.get('local db','db'))
-        self.GDBHostTxt =    wx.TextCtrl(self.DBSettingsTab, -1, self.config.get('go db','host'))
-        self.GDBUserTxt =    wx.TextCtrl(self.DBSettingsTab, -1, self.config.get('go db','user'))
+        self.GDBHostTxt    = wx.TextCtrl(self.DBSettingsTab, -1, self.config.get('go db','host'))
+        self.GDBUserTxt    = wx.TextCtrl(self.DBSettingsTab, -1, self.config.get('go db','user'))
         self.GDBPasswrdTxt = wx.TextCtrl(self.DBSettingsTab, -1, self.config.get('go db','passwd'), style=wx.TE_PASSWORD)
-        self.GDBPortSpn =    wx.SpinCtrl(self.DBSettingsTab, -1, str(self.config.getint('go db','port')), min=0, max=10000)
+        self.GDBPortSpn    = wx.SpinCtrl(self.DBSettingsTab, -1, self.config.get('go db','port'), min=0, max=10000)
         self.GDBDatabaseTxt= wx.TextCtrl(self.DBSettingsTab, -1, self.config.get('go db','db'))
 
 # end of class SettingsDlg

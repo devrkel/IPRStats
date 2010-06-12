@@ -394,16 +394,18 @@ certification process.
             self.config.set('general', 'directory', self.sessiondir)
             self.config.set('general', 'chart_type', self.chart_type)
             self.config.set('general', 'go_lookup', dlg.GOLookupCmb.GetValue())
+            self.config.set('general', 'max_chart_results', dlg.MaxChartSpn.GetValue())
+            self.config.set('general', 'max_table_results', dlg.MaxTableSpn.GetValue())
             self.config.set('local db', 'host', dlg.LDBHostTxt.GetValue())
             self.config.set('local db', 'user', dlg.LDBUserTxt.GetValue())
             self.config.set('local db', 'passwd', dlg.LDBPasswrdTxt.GetValue())
             self.config.set('local db', 'port', dlg.LDBPortSpn.GetValue())
             self.config.set('local db', 'db', str(dlg.LDBDatabaseTxt.GetValue()))
-            self.config.set('go db', 'host', dlg.LDBHostTxt.GetValue())
-            self.config.set('go db', 'user', dlg.LDBUserTxt.GetValue())
-            self.config.set('go db', 'passwd', dlg.LDBPasswrdTxt.GetValue())
-            self.config.set('go db', 'port', dlg.LDBPortSpn.GetValue())
-            self.config.set('go db', 'db', str(dlg.LDBDatabaseTxt.GetValue()))
+            self.config.set('go db', 'host', dlg.GDBHostTxt.GetValue())
+            self.config.set('go db', 'user', dlg.GDBUserTxt.GetValue())
+            self.config.set('go db', 'passwd', dlg.GDBPasswrdTxt.GetValue())
+            self.config.set('go db', 'port', dlg.GDBPortSpn.GetValue())
+            self.config.set('go db', 'db', str(dlg.GDBDatabaseTxt.GetValue()))
             configfile = open(self.configpath, 'w')
             self.config.write(configfile)
             configfile.close
@@ -501,6 +503,7 @@ class SettingsDlg(wx.Dialog):
         # begin wxGlade: SettingsDlg.__init__
         #kwds["style"] = wx.DEFAULT_DIALOG_STYLE
         self.config = config
+
         wx.Dialog.__init__(self, parent, id, title)
         self.Tabs = wx.Notebook(self, -1, style=0)
         self.DBSettingsTab = wx.Panel(self.Tabs, -1)
@@ -511,6 +514,9 @@ class SettingsDlg(wx.Dialog):
         self.SessionDirBtn = wx.Button(self.GeneralTab, -1, "...")
         self.ChartTypeLbl = wx.StaticText(self.GeneralTab, -1, "Chart type:  ")
         self.GOLookupLbl = wx.StaticText(self.GeneralTab, -1, "GO lookup:  ")
+        self.MaxChartLbl = wx.StaticText(self.GeneralTab, -1, "Max chart results:  ")
+        self.MaxTableLbl = wx.StaticText(self.GeneralTab, -1, "Max table results:  ")
+        self.LDBUseSqliteLbl = wx.StaticText(self.DBSettingsTab, -1, "Use SQLite:  ")
         self.LDBHostLbl = wx.StaticText(self.DBSettingsTab, -1, "Host:  ")
         self.LDBUserLbl = wx.StaticText(self.DBSettingsTab, -1, "User:  ")
         self.LDBPasswrdLbl = wx.StaticText(self.DBSettingsTab, -1, "Password: ")
@@ -525,6 +531,9 @@ class SettingsDlg(wx.Dialog):
         self.CancelBtn = wx.Button(self, wx.ID_CANCEL, "")
         self.OKBtn = wx.Button(self, wx.ID_OK, "")
         self.PopulateDialog()
+        
+        self.Bind(wx.EVT_CHECKBOX, self.OnUseSqlite, self.LDBUseSqliteChk)
+        
         self.__set_properties()
         self.__do_layout()
         # end wxGlade
@@ -532,7 +541,24 @@ class SettingsDlg(wx.Dialog):
     def __set_properties(self):
         # begin wxGlade: SettingsDlg.__set_properties
         self.SetTitle("Change properties...")
-        self.ChartTypeCmb.SetSelection(0)
+        
+        if self.config.get('general','chart_type').lower() == 'google':
+            self.ChartTypeCmb.SetSelection(0)
+        else:
+            self.ChartTypeCmb.SetSelection(1)
+            
+        if self.config.getboolean('general','go_lookup'):
+            self.GOLookupCmb.SetSelection(0)
+        else:
+            self.GOLookupCmb.SetSelection(1)
+        
+        self.LDBUseSqliteChk.SetValue(self.config.getboolean('local db','use_sqlite'))
+        
+        if self.LDBUseSqliteChk.GetValue():
+            self.LDBHostTxt.Disable()
+            self.LDBUserTxt.Disable()
+            self.LDBPasswrdTxt.Disable()
+            self.LDBPortSpn.Disable()
         # end wxGlade
 
     def __do_layout(self):
@@ -541,11 +567,11 @@ class SettingsDlg(wx.Dialog):
         BtnSzr = wx.FlexGridSizer(1, 3, 0, 0)
         DBSzr = wx.BoxSizer(wx.HORIZONTAL)
         GDBSzr = wx.StaticBoxSizer(self.GDBSzr_staticbox, wx.HORIZONTAL)
-        GDBOptionsSzr = wx.FlexGridSizer(5, 2, 3, 0)
+        GDBOptionsSzr = wx.FlexGridSizer(6, 2, 3, 0)
         LDBSzr = wx.StaticBoxSizer(self.LDBSzr_staticbox, wx.HORIZONTAL)
-        LDBOptionsSzr = wx.FlexGridSizer(5, 2, 3, 0)
+        LDBOptionsSzr = wx.FlexGridSizer(6, 2, 3, 0)
         
-        GeneralSzr = wx.FlexGridSizer(3, 3, 3, 0)
+        GeneralSzr = wx.FlexGridSizer(5, 3, 3, 0)
         GeneralSzr.Add(self.SessionDirLbl, 0, wx.ALIGN_CENTER_VERTICAL|wx.ADJUST_MINSIZE, 0)
         GeneralSzr.Add(self.SessionDirTxt, 0, wx.EXPAND|wx.ADJUST_MINSIZE, 0)
         GeneralSzr.Add(self.SessionDirBtn, 0, wx.ADJUST_MINSIZE, 0)
@@ -554,10 +580,19 @@ class SettingsDlg(wx.Dialog):
         GeneralSzr.Add((1,1), 0, wx.ADJUST_MINSIZE, 0)
         GeneralSzr.Add(self.GOLookupLbl, 0, wx.ALIGN_CENTER_VERTICAL|wx.ADJUST_MINSIZE, 0)
         GeneralSzr.Add(self.GOLookupCmb, 0, wx.EXPAND|wx.ADJUST_MINSIZE, 0)
+        GeneralSzr.Add((1,1), 0, wx.ADJUST_MINSIZE, 0)
+        GeneralSzr.Add(self.MaxChartLbl, 0, wx.ALIGN_CENTER_VERTICAL|wx.ADJUST_MINSIZE, 0)
+        GeneralSzr.Add(self.MaxChartSpn, 0, wx.EXPAND|wx.ADJUST_MINSIZE, 0)
+        GeneralSzr.Add((1,1), 0, wx.ADJUST_MINSIZE, 0)
+        GeneralSzr.Add(self.MaxTableLbl, 0, wx.ALIGN_CENTER_VERTICAL|wx.ADJUST_MINSIZE, 0)
+        GeneralSzr.Add(self.MaxTableSpn, 0, wx.EXPAND|wx.ADJUST_MINSIZE, 0)
+        
 
         self.GeneralTab.SetSizer(GeneralSzr)
         GeneralSzr.AddGrowableCol(1)
         
+        LDBOptionsSzr.Add(self.LDBUseSqliteLbl, 0, wx.ALIGN_CENTER_VERTICAL|wx.ADJUST_MINSIZE, 0)
+        LDBOptionsSzr.Add(self.LDBUseSqliteChk, 0, wx.ALIGN_CENTER_VERTICAL|wx.ADJUST_MINSIZE, 0)
         LDBOptionsSzr.Add(self.LDBHostLbl, 0, wx.ALIGN_CENTER_VERTICAL|wx.ADJUST_MINSIZE, 0)
         LDBOptionsSzr.Add(self.LDBHostTxt, 0, wx.EXPAND|wx.ADJUST_MINSIZE, 0)
         LDBOptionsSzr.Add(self.LDBUserLbl, 0, wx.ALIGN_CENTER_VERTICAL|wx.ADJUST_MINSIZE, 0)
@@ -567,12 +602,14 @@ class SettingsDlg(wx.Dialog):
         LDBOptionsSzr.Add(self.LDBPortLbl, 0, wx.ALIGN_CENTER_VERTICAL|wx.ADJUST_MINSIZE, 0)
         LDBOptionsSzr.Add(self.LDBPortSpn, 0, wx.EXPAND|wx.ADJUST_MINSIZE, 0)
         LDBOptionsSzr.Add(self.LDBDatabaseLbl, 0, wx.ALIGN_CENTER_VERTICAL|wx.ADJUST_MINSIZE, 0)
-        LDBOptionsSzr.Add(self.LDBDatabaseTxt, 0, wx.ADJUST_MINSIZE, 0)
+        LDBOptionsSzr.Add(self.LDBDatabaseTxt, 0, wx.EXPAND|wx.ADJUST_MINSIZE, 0)
         LDBOptionsSzr.AddGrowableCol(1)
         LDBSzr.Add(LDBOptionsSzr, 1, wx.EXPAND, 0)
         DBSzr.Add(LDBSzr, 1, wx.EXPAND, 0)
         
         DBSzr.Add((5, 20), 0, wx.ADJUST_MINSIZE, 0)
+        GDBOptionsSzr.Add((5,20), 0, wx.ADJUST_MINSIZE, 0)
+        GDBOptionsSzr.Add((5,20), 0, wx.ADJUST_MINSIZE, 0)
         GDBOptionsSzr.Add(self.GDBHostLbl, 0, wx.ALIGN_CENTER_VERTICAL|wx.ADJUST_MINSIZE, 0)
         GDBOptionsSzr.Add(self.GDBHostTxt, 0, wx.EXPAND|wx.ADJUST_MINSIZE, 0)
         GDBOptionsSzr.Add(self.GDBUserLbl, 0, wx.ALIGN_CENTER_VERTICAL|wx.ADJUST_MINSIZE, 0)
@@ -582,7 +619,7 @@ class SettingsDlg(wx.Dialog):
         GDBOptionsSzr.Add(self.GDBPortLbl, 0, wx.ALIGN_CENTER_VERTICAL|wx.ADJUST_MINSIZE, 0)
         GDBOptionsSzr.Add(self.GDBPortSpn, 0, wx.EXPAND|wx.ADJUST_MINSIZE, 0)
         GDBOptionsSzr.Add(self.GDBDatabaseLbl, 0, wx.ALIGN_CENTER_VERTICAL|wx.ADJUST_MINSIZE, 0)
-        GDBOptionsSzr.Add(self.GDBDatabaseTxt, 0, wx.ADJUST_MINSIZE, 0)
+        GDBOptionsSzr.Add(self.GDBDatabaseTxt, 0, wx.EXPAND|wx.ADJUST_MINSIZE, 0)
         GDBOptionsSzr.AddGrowableCol(1)
         GDBSzr.Add(GDBOptionsSzr, 1, wx.EXPAND, 0)
         DBSzr.Add(GDBSzr, 1, wx.EXPAND, 0)
@@ -606,8 +643,11 @@ class SettingsDlg(wx.Dialog):
     
     def PopulateDialog(self):
         self.SessionDirTxt = wx.TextCtrl(self.GeneralTab,    -1, self.config.get('general','directory'))
-        self.ChartTypeCmb  = wx.ComboBox(self.GeneralTab,    -1, choices=["Google", "PyDev"], style=wx.CB_DROPDOWN)
-        self.GOLookupCmb   = wx.ComboBox(self.GeneralTab,    -1, choices=["True", "False"], style=wx.CB_DROPDOWN)
+        self.ChartTypeCmb  = wx.ComboBox(self.GeneralTab,    -1, choices=['google', 'pylab'], style=wx.CB_DROPDOWN)
+        self.GOLookupCmb   = wx.ComboBox(self.GeneralTab,    -1, choices=['true','false'], style=wx.CB_DROPDOWN)
+        self.MaxChartSpn   = wx.SpinCtrl(self.GeneralTab, -1, self.config.get('general','max_chart_results'), min=0, max=35)
+        self.MaxTableSpn   = wx.SpinCtrl(self.GeneralTab, -1, self.config.get('general','max_table_results'), min=0, max=10000)
+        self.LDBUseSqliteChk=wx.CheckBox(self.DBSettingsTab, -1, '')
         self.LDBHostTxt    = wx.TextCtrl(self.DBSettingsTab, -1, self.config.get('local db','host'))
         self.LDBUserTxt    = wx.TextCtrl(self.DBSettingsTab, -1, self.config.get('local db','user'))
         self.LDBPasswrdTxt = wx.TextCtrl(self.DBSettingsTab, -1, self.config.get('local db','passwd'), style=wx.TE_PASSWORD)
@@ -619,8 +659,19 @@ class SettingsDlg(wx.Dialog):
         self.GDBPortSpn    = wx.SpinCtrl(self.DBSettingsTab, -1, self.config.get('go db','port'), min=0, max=10000)
         self.GDBDatabaseTxt= wx.TextCtrl(self.DBSettingsTab, -1, self.config.get('go db','db'))
 
-# end of class SettingsDlg
+    def OnUseSqlite(self, event):
+        if self.LDBUseSqliteChk.GetValue():
+            self.LDBHostTxt.Disable()
+            self.LDBUserTxt.Disable()
+            self.LDBPasswrdTxt.Disable()
+            self.LDBPortSpn.Disable()
+        else:
+            self.LDBHostTxt.Enable()
+            self.LDBUserTxt.Enable()
+            self.LDBPasswrdTxt.Enable()
+            self.LDBPortSpn.Enable()
 
+# end of class SettingsDlg
 
 
 if __name__ == "__main__":

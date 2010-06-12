@@ -1,5 +1,5 @@
 #!/usr/bin/python
-import ConfigParser
+import os, ConfigParser
 try:
     from pylab import *
     pylab_avail = True
@@ -7,6 +7,7 @@ except:
     pylab_avail = False
     
 from pygooglechart import PieChart2D
+import sqlite3
 import MySQLdb
 
 class IPRStatsData:
@@ -54,9 +55,13 @@ class IPRStatsData:
     # Private method to retrieve the local database connection given the configuration
     # Throws a connection error if it cannot connect
     def _get_db_connection(self, config):
-        return MySQLdb.connect(host=self.config.get('local db', 'host'),
-            user=self.config.get('local db','user'), passwd=self.config.get('local db','passwd'),
-            db = self.config.get('local db','db'))
+        if config.getboolean('local db','use_sqlite'):
+            return sqlite3.connect(os.path.join(config.get('general','directory'),
+                                        self.session,config.get('local db','db')))
+        else:
+            return MySQLdb.connect(host=self.config.get('local db', 'host'),
+                    user=self.config.get('local db','user'), passwd=self.config.get('local db','passwd'),
+                    port=self.config.getint('local db','port'), db = self.config.get('local db','db'))
     
     # Private method to retrieve GO Term database connection
     # Throws a connection error if it cannot connect
@@ -67,9 +72,15 @@ class IPRStatsData:
     
     # Get a list of (name, count) pairs for a given app/match db
     # Returns [(name1, name2, name3), (count1, count2, count3)] or None
-    def get_counts(self, app, limit=35):
+    def get_counts(self, app, limit=None):
         count_by_name = []
-        self.count_cursor.execute("SELECT name, count(1) as count FROM %s_iprmatch " % (self.session) + 
+        if not limit:
+            limit = self.config.get('general','max_chart_results')
+        
+        if limit == 0:
+            return None
+            
+        self.count_cursor.execute("SELECT name, count(1) as count FROM `%s_iprmatch` " % (self.session) + 
                         "WHERE db_name ='%s' GROUP BY id " % (app) + 
                         "ORDER BY count DESC, id asc, name asc LIMIT %s" % (limit))
         for row in self.count_cursor:
@@ -112,22 +123,25 @@ class IPRStatsData:
             return False
     
     # Sets the match cursor for iterating through the matches
-    def init_match_data(self, app, limit=35):
-        self.current_app = app
+    def init_match_data(self, app, limit=None):
+        
+        if not limit:
+            limit = self.config.get('general','max_table_results')
+        
         self.match_cursor.execute("""
             select   C.name, B.match_id, A.class_id, C.count
-            from     %s_protein_classification as A
-                     join %s_protein_interpro_match as B on A.protein_id = B.protein_id
+            from     `%(session)s_protein_classification` as A
+                     join `%(session)s_protein_interpro_match` as B on A.protein_id = B.protein_id
                      join (
                            select   name, pim_id, count(1) as count
-                           from     %s_iprmatch
-                           where    db_name = '%s'
+                           from     `%(session)s_iprmatch`
+                           where    db_name = '%(db)s'
                            group by id
                            order by count desc, id asc, name asc
-                           limit    %s
+                           limit    %(limit)s
                           ) as C on B.pim_id = C.pim_id
             group by A.class_id
-            order by C.count desc, C.name asc;""" %(self.session, self.session, self.session, app, limit))
+            order by C.count desc, C.name asc;""" %({'session':self.session, 'db':app, 'limit':limit}))
 
     # Get the raw database results from the match data query
     # Returns (Name, DB_ID, GO_ID, Count) or None
@@ -158,7 +172,7 @@ class IPRStatsData:
     # Returns (GO_Name, GO_Definition) given GO_ID
     def retrieve_go_info(self, go_id):
         self.go_cursor.execute(
-            'select name, term_definition from term join term_definition' + \
+            'select name, term_definition from `term` join `term_definition`' + \
             ' on id = term_id where acc = "%s"' % (go_id))
         goinfo = self.go_cursor.fetchone()
             

@@ -1,6 +1,6 @@
 #!/usr/bin/python
 import string, os, sys, time, getopt
-import MySQLdb
+import MySQLdb, sqlite3
 import ConfigParser
 from random import choice
 from xml.sax import ContentHandler
@@ -36,7 +36,15 @@ class EBIXML(ContentHandler):
         self.outfile = outfile
         if config:
             self.config = config
-            self.db_con = MySQLdb.connect(host=self.config.get('local db','host'),
+            if config.getboolean('local db','use_sqlite'):
+                self.ignorecmd = "OR IGNORE"
+                self.autoincrement = ""
+                self.db_con = sqlite3.connect(os.path.join(config.get('general','directory'),
+                                                    self.session,config.get('local db','db')))
+            else:
+                self.ignorecmd = "IGNORE"
+                self.autoincrement = " AUTO_INCREMENT"
+                self.db_con = MySQLdb.connect(host=self.config.get('local db','host'),
                                     user=self.config.get('local db','user'),
                                     passwd=self.config.get('local db','passwd'),
                                     db=self.config.get('local db','db'))
@@ -48,7 +56,7 @@ class EBIXML(ContentHandler):
                 self.pim_id = 1
             
             db_struct = open('structure.sql', 'r')
-            struct_sql = db_struct.read() % ((self.session,)*7)
+            struct_sql = db_struct.read() % ({'SESSION':self.session,'AUTO':self.autoincrement})
             print >> self.outfile, struct_sql
             self.outfile.flush()
             
@@ -88,15 +96,15 @@ class EBIXML(ContentHandler):
     def endElement(self, name):
         if name == "protein":
             self.in_protein = False
-            sql_string = 'INSERT INTO `%s_protein` (protein_id, length, crc64, nprot) VALUES ("%s", %d, "%s", %d) ' % (
+            sql_string = 'REPLACE INTO `%s_protein` (protein_id, length, crc64, nprot) VALUES ("%s", %d, "%s", %d); ' % (
                        self.session, self.protein["id"], self.protein["length"], self.protein["crc64"], 1)
-            sql_string += 'ON DUPLICATE KEY UPDATE nprot=nprot+1;'
+            #sql_string += 'ON DUPLICATE KEY UPDATE nprot=nprot+1;'
             print >> self.outfile, sql_string
             self.outfile.flush()
         elif name in ("interpro", "ipr"):
             self.in_interpro = False
-            sql_string = 'INSERT IGNORE INTO `%s_interpro` (interpro_id, name, ipr_type) VALUES ("%s", "%s", "%s");' % (
-                            self.session, self.interpro['id'], self.interpro['name'], self.interpro['type'])
+            sql_string = 'INSERT %s INTO `%s_interpro` (interpro_id, name, ipr_type) VALUES ("%s", "%s", "%s");' % (
+                            self.ignorecmd, self.session, self.interpro['id'], self.interpro['name'], self.interpro['type'])
             sql_string2 = 'INSERT INTO `%s_protein_interpro` (protein_id, interpro_id) VALUES ("%s", "%s");' % (
                      self.session, self.protein['id'], self.interpro['id'])
             print >> self.outfile, sql_string
@@ -109,8 +117,8 @@ class EBIXML(ContentHandler):
             
             sql_string += 'VALUES (%d, "%s", "%s", "%s"); ' % (
                       self.pim_id, self.protein['id'], self.interpro['id'], self.match['id'])
-            sql_string2 = 'INSERT IGNORE INTO `%s_iprmatch` ' % (
-                     self.session)
+            sql_string2 = 'INSERT %s INTO `%s_iprmatch` ' % (
+                     self.ignorecmd, self.session)
             sql_string2 += "(id, pim_id, name, db_name) "
 
             sql_string2 += ' VALUES ("%s", %d, "%s", "%s");' % (
@@ -142,7 +150,14 @@ class EBIXML(ContentHandler):
         # Update the mysql database
         if self.outfile is not sys.stdout:
             self.outfile.flush()
-            os.system("mysql %s -u%s -h %s -p%s < %s" %
+            if self.config.get('local db','use_sqlite'):
+                sqlfile = open(self.outfile.name, 'r')
+                for line in sqlfile:
+                    self.db_cursor.execute(line)
+                self.db_con.commit()
+                sqlfile.close()
+            else:
+                os.system("mysql %s -u%s -h %s -p%s < %s" %
                       (self.config.get('local db','db'), self.config.get('local db','user'),
                        self.config.get('local db','host'), self.config.get('local db','passwd'),
                        self.outfile.name))

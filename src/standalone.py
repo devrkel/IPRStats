@@ -448,9 +448,9 @@ certification process.
                     current_id = row[0]
                     self.PopulateGridRow(app,row[1],row[3],row[2],link_font,r)
                     r += 1
-                    
-                self.PopulateGridRow(app,'',row[4],row[5],link_font,r)
-                r += 1;
+                if row[4] != None:
+                    self.PopulateGridRow(app,'',row[4],row[5],link_font,r)
+                    r += 1;
             self.grids[app].AutoSizeColumns()
             self.tabs[app].Fit()
                 

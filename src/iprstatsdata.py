@@ -82,7 +82,7 @@ class IPRStatsData:
             
         self.count_cursor.execute("SELECT name, count(1) as count FROM `%s_iprmatch` " % (self.session) + 
                         "WHERE db_name ='%s' GROUP BY id " % (app) + 
-                        "ORDER BY count DESC, id asc, name asc LIMIT %s" % (limit))
+                        "ORDER BY count DESC, name asc LIMIT %s" % (limit))
         for row in self.count_cursor:
             count_by_name.append((int(row[1]), (row[0])))
         
@@ -127,21 +127,20 @@ class IPRStatsData:
         
         if not limit:
             limit = self.config.get('general','max_table_results')
+        self.current_app = app
         
         self.match_cursor.execute("""
-            select   C.name, B.match_id, A.class_id, C.count
-            from     `%(session)s_protein_classification` as A
-                     join `%(session)s_protein_interpro_match` as B on A.protein_id = B.protein_id
-                     join (
-                           select   name, pim_id, count(1) as count
-                           from     `%(session)s_iprmatch`
-                           where    db_name = '%(db)s'
-                           group by id
-                           order by count desc, id asc, name asc
-                           limit    %(limit)s
-                          ) as C on B.pim_id = C.pim_id
-            group by A.class_id
-            order by C.count desc, C.name asc;""" %({'session':self.session, 'db':app, 'limit':limit}))
+            select   A.name, B.match_id, C.class_id, A.count
+            from     ( select   name, pim_id, count(1) as count
+                       from     `%(session)s_iprmatch`
+                       where    db_name = '%(db)s'
+                       group by id
+                       order by count desc, id asc, name asc
+                       limit    %(limit)s
+                     ) as A
+                     left outer join `%(session)s_protein_interpro_match` as B on A.pim_id = B.pim_id
+                     left outer join `%(session)s_protein_classification` as C on B.protein_id = C.protein_id
+            order by A.count desc, A.name asc;""" %({'session':self.session, 'db':app, 'limit':limit}))
 
     # Get the raw database results from the match data query
     # Returns (Name, DB_ID, GO_ID, Count) or None

@@ -39,6 +39,7 @@ class IPRStats_Frame(wx.Frame):
                 self.sessiondir = tempfile.gettempdir()
         
         self.session = None
+        self.dirname = ''
         self.database_results = wx.Notebook(self, -1, style=wx.NB_LEFT)
 
         self.tabs = {}
@@ -331,7 +332,6 @@ certification process.
 
     def OnOpen(self, event): # wxGlade: MetaIPS_Frame.<event_handler>
         """ Open a file"""
-        self.dirname = ''
         dlg = wx.FileDialog(self, "Choose a file", self.dirname, "", "XML out (*.out)|*.out|XML (*.xml)|*.xml|View all files (*.*)|*.*", wx.OPEN)
         if dlg.ShowModal() == wx.ID_OK:
             self.filename = dlg.GetFilename()
@@ -362,7 +362,6 @@ certification process.
     
     def OnExportHTML(self, event): # wxGlade: MetaIPS_Frame.<event_handler>
         """ Open a file"""
-        self.dirname = ''
         dlg = wx.DirDialog(self, "Choose a folder", self.dirname, wx.OPEN)
         if dlg.ShowModal() == wx.ID_OK:
             self.dirname = dlg.GetPath()
@@ -372,7 +371,6 @@ certification process.
     
     def OnExportXLS(self, event): # wxGlade: MetaIPS_Frame.<event_handler>
         """ Save as an .xls file"""
-        self.dirname = ''
         dlg = wx.FileDialog(self, "Save as file", self.dirname, "", "*.xls", wx.SAVE)
         if dlg.ShowModal() == wx.ID_OK:
             self.filename = dlg.GetFilename()
@@ -396,6 +394,7 @@ certification process.
             self.config.set('general', 'go_lookup', dlg.GOLookupCmb.GetValue())
             self.config.set('general', 'max_chart_results', dlg.MaxChartSpn.GetValue())
             self.config.set('general', 'max_table_results', dlg.MaxTableSpn.GetValue())
+            self.config.set('local db', 'use_sqlite', str(dlg.LDBUseSqliteChk.GetValue()))
             self.config.set('local db', 'host', dlg.LDBHostTxt.GetValue())
             self.config.set('local db', 'user', dlg.LDBUserTxt.GetValue())
             self.config.set('local db', 'passwd', dlg.LDBPasswrdTxt.GetValue())
@@ -436,7 +435,9 @@ certification process.
                 
             r = 0
             current_id = ''
-            self.grids[app].DeleteRows(0, self.grids[app].GetNumberRows(), False)
+            if self.grids[app].GetNumberRows() > 0:
+                self.grids[app].DeleteRows(0, self.grids[app].GetNumberRows(), False)
+                
             while True:
                 row = ipsstat.get_link_data_row()
                 if not row:
@@ -503,6 +504,7 @@ class SettingsDlg(wx.Dialog):
         # begin wxGlade: SettingsDlg.__init__
         #kwds["style"] = wx.DEFAULT_DIALOG_STYLE
         self.config = config
+        self.dirname = config.get('general','directory')
 
         wx.Dialog.__init__(self, parent, id, title)
         self.Tabs = wx.Notebook(self, -1, style=0)
@@ -533,6 +535,7 @@ class SettingsDlg(wx.Dialog):
         self.PopulateDialog()
         
         self.Bind(wx.EVT_CHECKBOX, self.OnUseSqlite, self.LDBUseSqliteChk)
+        self.Bind(wx.EVT_BUTTON, self.OnChooseSessionDir, self.SessionDirBtn)
         
         self.__set_properties()
         self.__do_layout()
@@ -658,6 +661,14 @@ class SettingsDlg(wx.Dialog):
         self.GDBPasswrdTxt = wx.TextCtrl(self.DBSettingsTab, -1, self.config.get('go db','passwd'), style=wx.TE_PASSWORD)
         self.GDBPortSpn    = wx.SpinCtrl(self.DBSettingsTab, -1, self.config.get('go db','port'), min=0, max=10000)
         self.GDBDatabaseTxt= wx.TextCtrl(self.DBSettingsTab, -1, self.config.get('go db','db'))
+
+    def OnChooseSessionDir(self, event):
+        if not self.dirname: self.dirname = ''
+        dlg = wx.DirDialog(self, "Choose a folder", self.dirname, wx.OPEN)
+        if dlg.ShowModal() == wx.ID_OK:
+            self.dirname = dlg.GetPath()
+            self.SessionDirTxt.SetValue(self.dirname)
+        dlg.Destroy()
 
     def OnUseSqlite(self, event):
         if self.LDBUseSqliteChk.GetValue():

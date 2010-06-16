@@ -1,0 +1,29 @@
+[html]
+directory = /var/www/test/runs/
+pretty_html = false
+xls_generation = false
+
+[local db]
+use_sqlite = True
+passwd = password
+db = iprstats
+host = localhost
+user = root
+port = 3306
+
+[go db]
+passwd = password
+db = go_terms
+host = localhost
+user = root
+port = 3306
+
+[general]
+max_table_results = 35
+go_lookup = true
+apps = PFAM, PIR, GENE3D, HAMAP, PANTHER, PRINTS, PRODOM,
+	PROFILE, PROSITE, SMART, SUPERFAMILY, TIGRFAMs
+max_chart_results = 10
+chart_type = google
+directory = .session
+

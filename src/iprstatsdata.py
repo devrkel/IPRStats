@@ -66,9 +66,15 @@ class IPRStatsData:
     # Private method to retrieve GO Term database connection
     # Throws a connection error if it cannot connect
     def _get_go_db_connection(self, config):
-        return MySQLdb.connect(host=self.config.get('go db', 'host'),
+        try: 
+            conn = MySQLdb.connect(host=self.config.get('go db', 'host'),
             user=self.config.get('go db','user'), passwd=self.config.get('go db','passwd'),
             port=self.config.getint('go db', 'port'), db = self.config.get('go db','db'))
+            return conn
+        except:
+            print 'Cannot connect to GO DB... disabling GO lookup'
+            self.go_lookup = False
+            return None
     
     # Get a list of (name, count) pairs for a given app/match db
     # Returns [(name1, name2, name3), (count1, count2, count3)] or None
@@ -161,7 +167,10 @@ class IPRStatsData:
             
             if self.go_lookup:
                 go_info = self.retrieve_go_info(go_id)
-                return db_id, name, db_url, count, go_info[0], go_url, go_info[1]
+                if go_info:
+                    return db_id, name, db_url, count, go_info[0], go_url, go_info[1]
+                else:
+                    return db_id, name, db_url, count, go_id, go_url
             else:
                 return db_id, name, db_url, count, go_id, go_url
         else:
@@ -183,7 +192,7 @@ class IPRStatsData:
 
 if __name__ == '__main__':
     config = ConfigParser.ConfigParser()
-    config.readfp(open('ipsstats.cfg'))
+    config.readfp(open('iprstats.cfg'))
     i = IPRStatsData('Xs7O4pYH',config)
     i.init_match_data('TIGRFAMs')
     while True:

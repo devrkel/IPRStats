@@ -1,11 +1,19 @@
 #!/usr/bin/python
 import string, os, sys, time, getopt
-import MySQLdb, sqlite3
+try: import MySQLdb
+except: pass
+try: import sqlite3
+except: pass
 import ConfigParser
 from random import choice
 from xml.sax import ContentHandler
 from xml.sax import make_parser
 from xml.sax.handler import feature_namespaces
+try:
+    from win32com.shell import shellcon, shell            
+    homedir = shell.SHGetFolderPath(0, shellcon.CSIDL_APPDATA, 0, 0)
+except ImportError:
+    homedir = os.path.expanduser("~")
 
 class ProteinAnnotation:
     def __init__(self, id):
@@ -39,7 +47,7 @@ class EBIXML(ContentHandler):
             if config.getboolean('local db','use_sqlite'):
                 self.ignorecmd = "OR IGNORE"
                 self.autoincrement = ""
-                self.db_con = sqlite3.connect(os.path.join(config.get('general','directory'),
+                self.db_con = sqlite3.connect(os.path.join(homedir, '.iprstats',
                                                     self.session,config.get('local db','db')))
             else:
                 self.ignorecmd = "IGNORE"
@@ -55,7 +63,7 @@ class EBIXML(ContentHandler):
             except:
                 self.pim_id = 1
             
-            db_struct = open('structure.sql', 'r')
+            db_struct = open(os.path.join(homedir, '.iprstats', 'structure.sql'), 'r')
             struct_sql = db_struct.read() % ({'SESSION':self.session,'AUTO':self.autoincrement})
             print >> self.outfile, struct_sql
             self.outfile.flush()

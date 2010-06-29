@@ -1,12 +1,23 @@
-General installation
+GENERAL INSTALLATION
+-----------------------------
 
-   General installation is required for installing both the
-   IPRStats server and standalone applications.  These instructions
-   will guide you through setting up a MySQL database, extracting
-   the source code, and configuring the application. They are also
-   available online at http://wiki.github.com/devrkel/IPRStats/
+   General installation is required for installing both the IPRStats server
+   and standalone applications.  These instructions will guide you through
+   setting up a MySQL database, extracting the source code, and configuring
+   the application. They are also available online at 
+   http://wiki.github.com/devrkel/IPRStats/
 
-   1. Setting up the database
+   WINDOWS
+   --------------------------
+
+   1. Required software
+   
+      There are several dependencies you must install before 
+      
+      
+      1.1 MySQL
+      
+          If you do not have 
      
       If you do not have administrative access to a MySQL database,
       download and setup the MySQL Community Server from

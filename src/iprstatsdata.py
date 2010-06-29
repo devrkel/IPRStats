@@ -8,7 +8,15 @@ except:
     
 from pygooglechart import PieChart2D
 import sqlite3
-import MySQLdb
+try:
+    import MySQLdb
+except:
+    pass
+try:
+    from win32com.shell import shellcon, shell            
+    homedir = shell.SHGetFolderPath(0, shellcon.CSIDL_APPDATA, 0, 0)
+except ImportError:
+    homedir = os.path.expanduser("~")
 
 class IPRStatsData:
     
@@ -21,7 +29,8 @@ class IPRStatsData:
         self.conn = self._get_db_connection(config)
         if self.go_lookup:
             self.go_conn = self._get_go_db_connection(config)
-            self.go_cursor = self.go_conn.cursor()
+            if self.go_conn:
+                self.go_cursor = self.go_conn.cursor()
         
         # Separate cursors for counts and matches
         self.count_cursor = self.conn.cursor()
@@ -56,7 +65,7 @@ class IPRStatsData:
     # Throws a connection error if it cannot connect
     def _get_db_connection(self, config):
         if config.getboolean('local db','use_sqlite'):
-            return sqlite3.connect(os.path.join(config.get('general','directory'),
+            return sqlite3.connect(os.path.join(homedir, '.iprstats',
                                         self.session,config.get('local db','db')))
         else:
             return MySQLdb.connect(host=self.config.get('local db', 'host'),

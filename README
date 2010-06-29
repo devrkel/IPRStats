@@ -7,30 +7,39 @@ Site: http://github.com/devrkel/IPRStats
 A statistical tool that eases the analysis of InterProScan results
 by generating charts and tables with links to additional information.
 
-1. Requirements
+1. REQUIREMENTS
+-----------------------------
    
-   Standalone requirements
+   Standalone requirements:
     + Python 2.6
-    + MySQL 5.1
-    + Matplotlib
+    + MySQL 5.1 and MySQLdb
     + wxPython
     
-   Server requirements
+   Server requirements:
     + Python 2.6
-    + MySQL 5.1
+    + MySQL 5.1 and MySQLdb
     + Apache2
-    + PHP 5
-    + Matplotlib
+    
+   Optional Python modules:
+    + SQLite3
+    + Matplotlib and Numpy
 
-2. Installation
+
+2. INSTALLATION
+-----------------------------
 
    For help with installation and configuration, please see INSTALL.
 
-3. Notes
-   
-   // TODO
 
-4. Usage License
+3. NOTES
+-----------------------------
+   
+   IPRStats is currently in alpha.  It is very buggy and lacks
+   documentation. Email us for additional help.
+
+
+4. USAGE LICENSE
+-----------------------------
 
    IPRStats is released under the Academic Free License ("AFL") v. 3.0
    See LICENSE for complete details.

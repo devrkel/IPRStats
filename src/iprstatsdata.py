@@ -3,14 +3,15 @@ import os, ConfigParser
 try:
     from pylab import *
     pylab_avail = True
-except:
+except ImportError:
     pylab_avail = False
     
 from pygooglechart import PieChart2D
-import sqlite3
+import sqlite3, tempfile
+from tables import *
 try:
     import MySQLdb
-except:
+except ImportError:
     pass
 try:
     from win32com.shell import shellcon, shell            
@@ -24,6 +25,8 @@ class IPRStatsData:
         self.session = session
         self.config = config
         self.go_lookup = self.config.getboolean('general','go_lookup')
+        self.apps = self.config.get('general','apps').replace('\n',' ')
+        self.apps = self.apps.split(', ')
         
         # Database connections
         self.conn = self._get_db_connection(config)
@@ -38,10 +41,19 @@ class IPRStatsData:
         
         # Current app/match db being used
         self.current_app = None
+        self.current_apps = None
+        self.length = None
+        
+        # Set cache location to avoid unnecessary queries
+        self.sessiondir = os.path.join(homedir, '.iprstats',
+                                       self.session)
+        if not os.path.exists(self.sessiondir):
+            self.sessiondir = tempfile.gettempdir()
+        self.cache = os.path.join(self.sessiondir, 'results')
         
         # Hash of database links
         self.linkdb = {
-            'PFAM'       :'http://pfam.sanger.ac.uk/family?acc=%s',
+            'PFAM'       :'http://pfam.janelia.org/family?acc=%s',
             'PIR'        :'http://pir.georgetown.edu/cgi-bin/ipcSF?id=%s',
             'HAMAP'      :'http://www.expasy.org/unirule/%s',
             'PANTHER'    :'http://www.pantherdb.org/panther/family.do?' + 
@@ -60,6 +72,13 @@ class IPRStatsData:
                           '?hmm_acc=%s',
             'GENE3D'     :'http://www.cathdb.info/gene3d/%s',
             'GO'         :'http://www.ebi.ac.uk/QuickGO/GTerm?id=%s#ancchart'}
+        
+        self.initialize_table_data()
+        os.remove(os.path.join(self.sessiondir, 'iprsql.sql'))
+        if config.getboolean('local db','use_sqlite'):
+            sqlitepath = os.path.join(self.sessiondir,
+                                config.get('local db','db'))
+            os.remove(sqlitepath)
     
     # Private method to retrieve the local database connection given the configuration
     # Throws a connection error if it cannot connect
@@ -106,7 +125,7 @@ class IPRStatsData:
         else:
             return None
     
-    # Generate a chart given [(label1, label2), (value1, value2)] data
+    # Generate a chart given [(label1, label2, ), (value1, value2, )] data
     # Returns True or False depending on if the chart was generated
     def get_chart(self, chart_data, chart_title, chart_filename, chart_type='pylab'):
         if chart_data:
@@ -184,6 +203,93 @@ class IPRStatsData:
                 return db_id, name, db_url, count, go_id, go_url
         else:
             return None
+    #'''   
+    # Using PyTables and HDF5 to provide data storage to support potentially
+    # gigabytes of table information.
+    def initialize_table_data(self, app=None):
+        if app:
+            if type(app) is str:
+                self.current_apps = [str]
+            else:
+                self.current_app = app
+        else: self.current_apps = self.apps
+        
+        # Open a file for caching data
+        h5f = openFile(self.cache, 'w')
+        group = h5f.createGroup("/", 'tables', 'Table information')
+        
+        for app in self.current_apps:
+            
+            self.match_cursor.execute("""
+                select   A.name, B.match_id, C.class_id, A.count
+                from     ( select   name, pim_id, count(1) as count
+                           from     `%(session)s_iprmatch`
+                           where    db_name = '%(db)s'
+                           group by id
+                           order by count desc, id asc, name asc
+                         ) as A
+                         left outer join `%(session)s_protein_interpro_match` as B on A.pim_id = B.pim_id
+                         left outer join `%(session)s_protein_classification` as C on B.protein_id = C.protein_id
+                order by A.count desc, A.name asc;""" %({'session':self.session, 'db':app}))
+            
+            table = h5f.createTable(group, app.lower(), TableEntry, app + " table information")
+            table_el = table.row
+            for match in self.match_cursor:
+                name, db_id, go_id, count = match
+                if app in self.linkdb.keys():
+                    db_url = self.linkdb[app] % db_id
+                else:
+                    db_url = ''
+                go_url = self.linkdb['GO'] % go_id
+                
+                table_el['dbid'] = db_id
+                table_el['name'] = name
+                table_el['dburl'] = db_url
+                table_el['count'] = count
+                table_el['goid'] = go_id
+                table_el['gourl'] = go_url
+                table_el.append()
+            h5f.flush()
+        h5f.close()
+        self.h5f = openFile(self.cache, 'r')
+        
+    def get_table_length(self, app):
+        tablelen = eval("self.h5f.root.tables."+app.lower()+".nrows")
+        maxtablelen = self.config.getint('general','max_table_results')
+        if maxtablelen < 0:
+            return tablelen
+        return min(tablelen, maxtablelen)
+    
+    def get_one_row(self, app, row):
+        if app in self.apps:
+            return eval("self.h5f.root.tables."+app.lower()+"["+str(row)+"]")
+        else:
+            return None
+    
+    def get_two_rows(self, app, row):
+        if app in self.apps:
+            if row == 0:
+                rows = eval("self.h5f.root.tables."+app.lower()+"["+str(row)+"]")
+                return [None, rows]
+            try:
+                rows = eval("self.h5f.root.tables."+app.lower()+"["+str(row-1)+":"+str(row+1)+"]")
+                return rows
+            except IndexError:
+                return None
+        else:
+            return None
+    
+    def get_table_cell(self, app, row, col):
+        if app in self.apps:
+            try:
+                row = eval("self.h5f.root.tables."+app.lower()+"["+str(row)+"]")
+                return row[col]
+            except IndexError:
+                return None
+        else:
+            return None
+    
+    #'''
     
     # Retrieve the GO Term name and definition; slow without local installation
     # Returns (GO_Name, GO_Definition) given GO_ID
@@ -198,6 +304,16 @@ class IPRStatsData:
     # Closes connections to the databases
     def close(self):
         self.conn.close()
+        self.h5f.close()
+
+class TableEntry(IsDescription):
+    dbid      = StringCol(16)   # 16-character String
+    name      = StringCol(2048) # 2048-character String
+    dburl     = StringCol(2048) # 2048-character String
+    count     = UInt16Col()     # Signed 64-bit integer
+    goid      = StringCol(10)   # 16-character String
+    gourl     = StringCol(2048) # 2048-character String
+    
 
 if __name__ == '__main__':
     config = ConfigParser.ConfigParser()

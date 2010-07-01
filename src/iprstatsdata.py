@@ -84,7 +84,7 @@ class IPRStatsData:
             self.match_cursor.close()
             sqlitepath = os.path.join(self.sessiondir,
                                 config.get('local db','db'))
-            os.remove(sqlitepath)
+            #os.remove(sqlitepath)
     
     # Private method to retrieve the local database connection given the configuration
     # Throws a connection error if it cannot connect

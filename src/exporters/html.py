@@ -1,92 +1,47 @@
 #!/usr/bin/python
-import sys, os, shutil, getopt
-import ConfigParser
-from iprstatsdata import IPRStatsData
-from threading import Thread
+import os
+import sys
+import shutil
 
-# Used to construct the html dom tree
-class _html_el:
-
-    def __init__(self, el, attr, children):
-        # HTML tag (string)
-        self.el = el
-        
-        # Condition should specify "Pretty HTML"
-        if True:
-            self.tab = "\t"
-            self.nl = "\n"
-        else:
-            self.tab = ''
-            self.nl = ''
-        
-        # HTML tag's attributes
-        self.attr = attr
-        
-        # Standardize children input; accepts strings (text),
-        # _html_el objects, or arrays of _html_el objects
-        if type(children) == type(''):   self.children = [children]
-        elif type(children) == type(0):  self.children = [str(children)]
-        elif type(children) == type([]): self.children = children * 1
-        else:                            self.children = [children]
+class page:
+    '''Class for defining and outputting a single HTML page.
     
-    # Append an attribute to the HTML element
-    def append_attr(self, attr, value):
-        self.attr[attr] = value
+    A single HTML page can be created given a specific member database
+    app and an IPRStatsData object.
+    '''
     
-    # Append a child to the HTML element
-    # Accepts ('el',{attr},[child]) or _html_el object
-    def append_child(self, elem, attr={}, children=[]):
-        if elem:   
-            # Check if the passed arg is an object or new element
-            if type(elem) == type(''): child = _html_el(elem, attr, children)
-            else: child = elem
-
-            self.children.append(child)
-            return child
-        return None
-
-    # Return the HTML for this object and its children
-    def get_html(self, ilvl=0):
-        indent = self.tab * ilvl
-        html = indent + "<" + self.el
-        if self.attr == None: self.attr = {}
-        for (key, value) in self.attr.items():
-            if value:
-                html += " " + key + "=\"" + value.replace('"', '&quot;') + "\""
-        if len(self.children) == 0 or not(self.children[0]): html += " />"
-        elif len(self.children) == 1:
-            html += ">"
-            child = self.children[0]
-            if type(child) == type(''):
-                html += str(child)
-            else:
-                html += child.get_html(0)
-            html += "</" + self.el + ">"
-        else:
-            html += ">" + self.nl
-            for child in self.children:
-                if type(child) == type(''):
-                    html += indent + self.tab + child + self.nl
-                else:
-                    html += child.get_html(ilvl + 1) + self.nl
-            html += indent + "</" + self.el + ">"
-        return html
-
-class export_page(Thread):
-    
-    def __init__(self, app, iprstatsdata, directory=None, menu=None, chart_type=None, log=None):
-        Thread.__init__(self)
+    def __init__(self, app, iprstatsdata, directory=None, menu=None,
+                chart_type=None, chart_gen=None, log=None):
+        """Initialize a single HTML page
+        
+        Requires a specific app and an IPRStatsData object containing the
+        data to be displayed in the HTML page.  Optional arguments include:
+            directory - the output HTML directory, defaults to stdout
+            menu - whether or not to display a menu on the page
+            chart_gen - 'google' or 'pylab' charts?
+            log - currently not used
+        """
         self.app = app
-        self.iprstatsdata = iprstatsdata
+        self.iprsdata = iprstatsdata
         self.directory = directory
         self.menu = menu
         self.chart_type = chart_type
+        self.chart_gen = chart_gen
         self.log = log
     
-    # Saves a pie chart given [(label1, label2),(value1, value2)] to chart_filename
-    # Returns an img object to the filename if creation was successful
-    def _generate_chart(self, chart_data, chart_title, chart_filename, chart_type=None):
+    def chart(self, chart_data, chart_title, chart_filename,
+              chart_type=None, chart_gen=None):
+        """Saves a pie chart to the export directory
         
+        chart_data of form [(label1, label2, ...), (value1, value2, ...)]
+        chart_title - title to be displayed above the chart
+        chart_filename - location to save the chart
+        chart_type (optional) - 'google' or 'pylab'
+        
+        returns an HTML img tag or None
+        """
+        
+        # For logging -- currently not being used
         if chart_type == 'google' and self.log:
             self.log.write('Downloading ' + chart_title + ' from Google Charts...\n')
             self.log.flush()
@@ -94,165 +49,212 @@ class export_page(Thread):
             self.log.write('Creating chart ' + chart_title + '...\n')
             self.log.flush()
             
-        if self.iprstatsdata.get_chart(chart_data, chart_title, chart_filename, chart_type):
-            img = _html_el('img', {}, [])
-            img.append_attr('src', os.path.basename(chart_filename))
-            img.append_attr('alt', chart_title)
+        # Get chart from IPRStatsData object and create the img tag
+        if self.iprsdata.get_chart(chart_data, chart_title, chart_filename,
+                                   chart_type, chart_gen):
+            img  = '<img'
+            img += ' src="' + os.path.basename(chart_filename) + '"'
+            img += ' alt="' + chart_title + '" />'
             return img
         else:
             return None
     
     # Generates a generic link object with link_name and link_url
-    def _generate_link(self, link_name, link_url, target=None, link_title=None):
+    def link(self, link_name, link_url, target=None, link_title=None):
+        """Create a string containing a generic html link
         
-        link = _html_el('a', {}, link_name)
-        link.append_attr('href', link_url)
-        if target != None: link.append_attr('target', target)
-        if link_title != None: link.append_attr('title', link_title)
+        link_name - the name of the link to be displayed to the user
+        link_url - the website address of the link
+        target - target window for the link to launch in;
+                 "_blank", "_parent", "_self" (default), or "_top" 
+        link_title - hover-over text of the link
+        
+        returns a string containing the link HTML
+        """
+        if not link_name:
+            return ''
+        
+        link  = '<a href="' + link_url + '"'
+        if target:
+            link += ' target="' + target + '"'
+        if link_title:
+            link += ' title="' + link_title + '"'
+        link += '>' + link_name + '</a>'
+
         return link
     
-    # Generates a table object with matches data generated by IPRStatsData
-    def _generate_link_table(self, app):
+    def link_table(self, app, file):
+        """Prints the HTML for a link table using iprstatsdata
+        to the supplied handle.
+        """
         
-        table = _html_el('table', {'cellspacing':'0'}, [])
+        # Create title row for the table
+        print >> file, '<table cellspacing="0">'
+        print >> file, '  <tr class="highlight"'
+        print >> file, '    <th>Name</th>'
+        print >> file, '    <th>Count</th>'
+        print >> file, '    <th>Link</th>'
+        print >> file, '  </tr>'
         
-        # Create header row
-        tr = table.append_child('tr', {'class':'highlight'}, [])
-        tr.append_child('th', {}, 'Name')
-        tr.append_child('th', {}, 'Count')
-        tr.append_child('th', {}, 'Link')
-        
-        current_id = ''
-        self.iprstatsdata.init_match_data(app)
-        while True:
-            row = self.iprstatsdata.get_link_data_row()
+        # Create a table row for each row in IPRStatsData
+        length = self.iprsdata.get_table_length(app)
+        for r in range(length):
+            row = self.iprsdata.get_one_row(app, r)
             if row:
-                
-                # Create title row for database
-                if row[0] != current_id:
-                    current_id = row[0]
-                    tt = table.append_child('tr',{},[])
-                    tt.append_child('td',{},row[1])
-                    tt.append_child('td',{},str(row[3]))
-                    url = self._generate_link(row[1],row[2],'_blank')
-                    tt.append_child('td',{},url)
-                
-                # Create GO link rows
-                tg = table.append_child('tr',{},[])
-                tg.append_child('td',{},' ')
-                if len(row) == 7:
-                    link = self._generate_link(row[4], row[5], '_blank', row[6])
-                else:
-                    link = self._generate_link(row[4], row[5], '_blank')
-                tg.append_child('td',{'colspan':'2'},link)
+                print >> file, '<tr>'
+                print >> file, '<td>' + self.link(row[5], row[2], '_blank') + '</td>'
+                print >> file, '<td>' + str(row[0]) + '</td>'
+                print >> file, '<td>' + self.link(row[3],row[4],'_blank') + '</td>'
+                print >> file, '</tr>'
             else:
                 break
-        return table
+
+        print >> file, '</table>'
     
-    # Generates an entire page complete with menus, charts, and tables
-    # TODO: write incrementally so that an entire page is not in memory
-    def run(self):
+    def export(self):
+        """Generate an HTML page using the info supplied at initialization"""
+        
+        # Ignore for now, not using a log
         if self.log:
             self.log.write("Creating page " + self.app.lower() + ".html...\n")
             self.log.flush()
         
-        # Standard header for each page
-        page = _html_el('html',{'xmlns':'http://www.w3.org/1999/xhtml'},[])
-        head = page.append_child('head',{},[])
-        head.append_child('meta',{'http-equiv':'Content-Type','content':'text/html; charset=utf-8'}, None)
-        head.append_child('title',{},'IPRStats Results')
-        head.append_child('link',{'href':'style.css','rel':'stylesheet','type':'text/css'},None)
-        body = page.append_child('body',{},[])
-        container = body.append_child('div',{'id':'container'},[])
-        header = container.append_child('div',{'id':'header'},[])
-        header.append_child('h1',{},'IPRStats')
-        tabs = header.append_child('ul',{'id':'tabs'},[])
-        tabs.append_child('li',{},[]).append_child('a',{'href':'../../'},'Upload')
-        
-        #header.append_child(self._generate_menu([('Home','#'),('upload','index.php')], menu_id='tabs'))
-        middle = container.append_child('div',{'id':'middlesec'}, [])
-        
-        # Generate navigation
-        if self.menu:
-            middle.append_child(self.menu)
+        # Use the supplied export directory or default to sys.stdout
+        if self.directory:
+            f = open(os.path.join(self.directory, self.app.lower()+'.html'),'w')
         else:
-            middle.append_child('ul',{'id':'navigation'},' ')
+            f = sys.stdout
         
-        # Generate chart
-        content = middle.append_child('div', {'id':'content'}, [])
-        counts = self.iprstatsdata.get_counts(self.app)
+        # Begin downloading the chart before generating page HTML
+        counts = self.iprsdata.get_counts(self.app)
         if self.directory: chart_filename = os.path.join(self.directory, self.app.lower()+'_matches.png')
         else: chart_filename = self.app.lower()+'_matches.png'
-        chart = self._generate_chart(counts, self.app+' Matches', chart_filename, self.chart_type)
-        if chart: content.append_child(chart)
+        chart = self.chart(counts, self.app+' Matches', chart_filename,
+                           self.chart_type, self.chart_gen)
+
+        # Standard header for each page
+        print >> f, '<html xmlns="http://www.w3.org/1999/xhtml">'
+        print >> f, ' <head>'
+        print >> f, '  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />'
+        print >> f, '  <title>IPRStats Results</title>'
+        print >> f, '  <link href="style.css" rel="stylesheet" type="text/css" />'
+        print >> f, ' </head>'
+        print >> f, ' <body>'
+        print >> f, '  <div id="container">'
+        print >> f, '   <div id="header">'
+        print >> f, '    <h1>IPRStats</h1>'
+        print >> f, '    <ul id="tabs">'
+        print >> f, '    </ul>'
+        print >> f, '   </div>'
         
-        # Generate table
-        content.append_child(self._generate_link_table(self.app))
+        # Print the given menu and content of the page
+        print >> f, '   <div id="middlesec">'
+        print >> f,      self.menu
+        print >> f, '    <div id="content">'
         
-        # Standard footer for each page
-        container.append_child('div',{'id':'footer'},'')
-        
-        if self.directory:
-            file_handle = open(os.path.join(self.directory, self.app.lower()+'.html'),'w')
-        else:
-            file_handle = sys.stdout
+        # If a chart was generated, print the HTML img tag
+        if chart:
+            print >> f,   chart
             
-        print >> file_handle, page.get_html()
-        file_handle.close
+        # Generate the link table
+        self.link_table(self.app, f)
+        
+        # Print the standard footer for each page
+        print >> f, '    </div>'
+        print >> f, '   </div>'
+        print >> f, '   <div id="footer">'
+        print >> f, '   </div>'
+        print >> f, '  </div>'
+        print >> f, ' </body>'
+        print >> f, '</html>'
+
+        f.close()
 
 class export_html:
+    """Class for exporting all pages at one time"""
     
-    def __init__(self, session, config):
-        self.session = session
-        self.config = config
-        self.iprstatsdata = IPRStatsData(session, config)
-        self.apps = self.config.get('general','apps').replace('\n',' ').split(', ')
-        self.path = os.path.join(config.get('html','directory'), self.session)
+    def __init__(self, iprstatsdata):
+        """Initialize the object with the required IPRStatsData object"""
+        self.iprsdata = iprstatsdata
+        self.apps = self.iprsdata.config.get('general','apps').replace('\n',' ').split(', ')
     
-    # Generates a generic link object with link_name and link_url
     def _generate_link(self, link_name, link_url, target=None, link_title=None):
+        """Create a string containing a generic html link
         
-        link = _html_el('a', {}, link_name)
-        link.append_attr('href', link_url)
-        if target != None: link.append_attr('target', target)
-        if link_title != None: link.append_attr('title', link_title)
+        link_name - the name of the link to be displayed to the user
+        link_url - the website address of the link
+        target - target window for the link to launch in;
+                 "_blank", "_parent", "_self" (default), or "_top" 
+        link_title - hover-over text of the link
+        
+        returns a string containing the link HTML
+        """
+        
+        link = '<a href="'+link_url+'"'
+        if target:
+            link += ' target="' + target + '"'
+        if link_title:
+            link += ' title="' + link_title + '"'
+        link += '>' + link_name + '</a>'
         return link
     
-    # Generates a generic list of links that can be styled with CSS
     def _generate_menu(self, menu_links, current_page=None, menu_id=None):
+        """Generate a list of links to be styled with CSS into a menu
         
-        menu = _html_el('ul',{'class':'menu'},[])
-        if menu_id: menu.append_attr('id',menu_id)
+        Requires a list of links of form [(title1, url1), (title2, url2), ...]
+        current_page - if specified, will add class="selected" to that link
+        menu_id - list id for identification and styling
+        """
+        
+        menu = '<ul class="menu"'
+        if menu_id:
+            menu += ' id="'+menu_id+'"'
+            
         for name, url in menu_links:
-            item = menu.append_child('li', {}, self._generate_link(name, url))
-            if name == current_page:
-                item.append_attr('class','selected')
+            menu += '<li'
+            if name == current_page or url == current_page:
+                menu += ' class="selected"'
+            menu += '>' + self._generate_link(name, url) + '</li>'
+        menu += '</ul>'
+            
         return menu
     
-    def export(self, app=None, directory=None, chart=None, log=None):
+    def export(self, app=None, directory=None, chart_type=None,
+               chart_gen=None, log=None):
+        """Export all or a single page as HTML
         
-        if directory:
-            shutil.copyfile('style.css', os.path.join(directory,'style.css'))
+        app - used to limit export to a single page
+        directory - HTML output directory (default=sys.stdout)
+        chart - 'google', 'pylab', or None
+        log - not currently being used
+        """
         
+        # Copy the static CSS to the export directory to style the HTML
+        sout = os.path.join(directory, 'style.css')
+        if directory and \
+            os.path.exists(os.path.join(os.getcwd(), 'style.css')):
+            shutil.copyfile('style.css', sout)
+        elif os.path.exists(os.path.join('/usr/share/pyshared/iprstats',
+                                         'style.css')):
+            shutil.copyfile('/usr/share/pyshared/iprstats/style.css', sout)
+        else:
+            print "Could not find style.css; Disabling HTML styling"
+        
+        # Export a single app or all apps
         if app:
-            eh.generate_page(app, directory, chart_type=chart, log=log)
+            p = page(app, directory, chart_type=chart_type,
+                     chart_gen=chart_gen, log=log)
+            p.export()
         else:
             links = []
-            inprogress = []
             for app in self.apps:
                 links.append((app, app.lower() + '.html'))
             menu = self._generate_menu(links, menu_id='navigation')
             for app in self.apps:
-                appiprstatsdata = IPRStatsData(self.session, self.config)
-                page = export_page(app, appiprstatsdata, directory=directory,
-                                   menu=menu, chart_type=chart, log=log)
-                inprogress.append(page)
-                page.start()
-            
-        # Make sure all the threads have finished
-        for page in inprogress:
-            page.join()
-
+                p = page(app, self.iprsdata, directory=directory, menu=menu,
+                         chart_type=chart_type, chart_gen=chart_gen, log=log)
+                p.export()
+'''
 if __name__ == '__main__':
 
     usage = "Usage: export_html.py -c <config_file> -s <session_id> [-a <db_application> -o <output_directory> -t <chart_type>]"

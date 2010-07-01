@@ -1,24 +1,25 @@
 #!/usr/bin/python
-import sys, os, getopt
-import ConfigParser
 import xlwt
-from iprstatsdata import IPRStatsData
 
-# used to export database information as a spreadsheet
 class export_xls:
+    """Class for exporting IPRStatsData as a spreadsheet.
     
-    def __init__(self, session, config):
-        self.session = session
-        self.ipsstats = IPRStatsData(session, config)
-        self.apps = ['PFAM', 'PIR', 'GENE3D', 'HAMAP', 'PANTHER', 'PRINTS',
-            'PRODOM','PROFILE', 'PROSITE', 'SMART', 'SUPERFAMILY', 'TIGRFAMs']
+    Each application will be generated in its own worksheet.
+    """
+    
+    def __init__(self, iprstatsdata):
+        """Initialize the exporter with the initialized IPRStatsData object"""
+        self.iprsdata = iprstatsdata
+        self.apps = self.iprsdata.config.get('general','apps').\
+                                    replace('\n',' ').split(', ')
         
-        self.path = os.path.join(config.get('html','directory'), self.session)
+    def _generate_sheet(self, app, xls_doc):
+        """Generate a single worksheet with a single app
         
-    # Generates an entire page complete with menus, charts, and tables
-    # TODO: write incrementally so that an entire page is not in memory
-    def generate_sheet(self, app, xls_doc):
-        # Create a worksheet in the workbook
+        app - app to create a worksheet for
+        xls_doc - xlwt.Workbook object to append to
+        """
+        # Create the worksheet
         sheet = xls_doc.add_sheet(app)
         
         # Create header style
@@ -38,38 +39,44 @@ class export_xls:
         sheet.write(0, 5, "DB Link")
         sheet.write(0, 6, "GO Link")
         
-        r = 0;
-        self.ipsstats.init_match_data(app)
-        while True:
-            row = self.ipsstats.get_link_data_row()
+        # Write a row to the spreadsheet for each row in iprstatsdata
+        length = self.iprsdata.get_table_length(app)
+        for r in range(length):
+            row = self.iprsdata.get_one_row(app, r)
             if row:
                 r += 1
-                sheet.write(r, 0, row[3]) # Count
-                sheet.write(r, 1, row[1]) # DB Name
-                sheet.write(r, 2, row[0]) # DB ID
-                sheet.write(r, 3, row[4]) # GO Name
-                #                         # GO ID
-                sheet.write(r, 5, row[2]) # DB URL
-                sheet.write(r, 6, row[5]) # GO URL
+                sheet.write(r, 0, str(row[0])) # Count
+                sheet.write(r, 1, row[5])      # DB Name
+                sheet.write(r, 2, row[1])      # DB ID
+                sheet.write(r, 3, row[3])      # GO Name
+                #                              # GO ID
+                sheet.write(r, 5, row[2])      # DB URL
+                sheet.write(r, 6, row[4])      # GO URL
                 if len(row) == 7:
                     sheet.write(r, 7, row[6]) # GO Definition
             else:
                 break
     
     def export(self, app=None, filename=None):
+        """Exports IPRStatsData as a spreadsheet
+        
+        app - export only a single app (default: all)
+        filename - save as file (default: iprstats.xls in current directory)
+        """
         xls_doc = xlwt.Workbook()
         
         if app:
-            self.generate_sheet(app, xls_doc)
+            self._generate_sheet(app, xls_doc)
         else:
             for app in self.apps:
-                self.generate_sheet(app, xls_doc)
+                self._generate_sheet(app, xls_doc)
         
         if filename:
             xls_doc.save(filename)
         else:
-            xls_doc.save('test.xls')
+            xls_doc.save('iprstats.xls')
 
+'''
 if __name__ == '__main__':
 
     usage = "Usage: export_xls.py -c <config_file> -s <session_id> [-a <db_application> -o <output_directory>]"

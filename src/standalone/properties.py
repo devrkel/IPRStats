@@ -20,6 +20,7 @@ class PropertiesDlg(wx.Dialog):
         # General settings labels
         self.GeneralTab = wx.Panel(self.Tabs, -1)
         self.ChartTypeLbl = wx.StaticText(self.GeneralTab, -1, "Chart type: ")
+        self.ChartGenLbl = wx.StaticText(self.GeneralTab, -1, "Chart generator: ")
         self.MaxChartLbl = wx.StaticText(self.GeneralTab, -1,
                                          "Max chart results: ")
         self.MaxTableLbl = wx.StaticText(self.GeneralTab, -1,
@@ -62,10 +63,16 @@ class PropertiesDlg(wx.Dialog):
         self.SetTitle("Change properties...")
         
         # Initialize chart type with correct value
-        if self.config.get('general','chart_type').lower() == 'google':
+        if self.config.get('general','chart_type').lower() == 'pie':
             self.ChartTypeCmb.SetSelection(0)
         else:
             self.ChartTypeCmb.SetSelection(1)
+            
+        # Initialize chart generator with correct value
+        if self.config.get('general','chart_gen').lower() == 'google':
+            self.ChartGenCmb.SetSelection(0)
+        else:
+            self.ChartGenCmb.SetSelection(1)
         
         # Initialize SQLite and GO lookup checkboxes with correct value
         if sys.modules.has_key('MySQLdb'):
@@ -102,10 +109,14 @@ class PropertiesDlg(wx.Dialog):
         LDBOptionsSzr = wx.FlexGridSizer(6, 2, 3, 0)
         
         # General settings
-        GeneralSzr = wx.FlexGridSizer(3, 2, 3, 0)
+        GeneralSzr = wx.FlexGridSizer(4, 2, 3, 0)
         GeneralSzr.Add(self.ChartTypeLbl,  0,
                        wx.ALIGN_CENTER_VERTICAL|wx.ADJUST_MINSIZE, 0)
         GeneralSzr.Add(self.ChartTypeCmb,  0,
+                       wx.EXPAND|wx.ADJUST_MINSIZE, 0)
+        GeneralSzr.Add(self.ChartGenLbl,  0,
+                       wx.ALIGN_CENTER_VERTICAL|wx.ADJUST_MINSIZE, 0)
+        GeneralSzr.Add(self.ChartGenCmb,  0,
                        wx.EXPAND|wx.ADJUST_MINSIZE, 0)
         GeneralSzr.Add(self.MaxChartLbl,   0,
                        wx.ALIGN_CENTER_VERTICAL|wx.ADJUST_MINSIZE, 0)
@@ -201,6 +212,9 @@ class PropertiesDlg(wx.Dialog):
         """
         # General settings
         self.ChartTypeCmb  = wx.ComboBox(self.GeneralTab,    -1,
+                                choices=['pie', 'bar'],
+                                style=wx.CB_DROPDOWN)
+        self.ChartGenCmb  = wx.ComboBox(self.GeneralTab,    -1,
                                 choices=['google', 'pylab'],
                                 style=wx.CB_DROPDOWN)
         self.MaxChartSpn   = wx.SpinCtrl(self.GeneralTab,    -1,
@@ -294,6 +308,8 @@ class PropertiesDlg(wx.Dialog):
         """
         self.config.set('general', 'chart_type',
                         self.ChartTypeCmb.GetValue().lower())
+        self.config.set('general', 'chart_gen',
+                        self.ChartGenCmb.GetValue().lower())
         self.config.set('general', 'max_chart_results',
                         self.MaxChartSpn.GetValue())
         self.config.set('general', 'max_table_results',

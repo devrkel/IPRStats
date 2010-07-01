@@ -6,9 +6,14 @@ try:
 except ImportError:
     pylab_avail = False
     
-from pygooglechart import PieChart2D
-import sqlite3, tempfile
-from tables import *
+from pygooglechart import PieChart2D, GroupedHorizontalBarChart
+import sqlite3
+import tempfile
+try:
+    from tables import *
+    USEPYTABLES = True
+except:
+    USEPYTABLES = False
 try:
     import MySQLdb
 except ImportError:
@@ -109,14 +114,14 @@ class IPRStatsData:
     def get_counts(self, app, limit=None):
         count_by_name = []
         if not limit:
-            limit = self.config.get('general','max_chart_results')
+            limit = self.config.getint('general','max_chart_results')
         
         if limit == 0:
             return None
             
         self.count_cursor.execute("SELECT name, count(1) as count FROM `%s_iprmatch` " % (self.session) + 
                         "WHERE db_name ='%s' GROUP BY id " % (app) + 
-                        "ORDER BY count DESC, name asc LIMIT %s" % (limit))
+                        "ORDER BY count DESC, name asc LIMIT %d" % (limit))
         for row in self.count_cursor:
             count_by_name.append((int(row[1]), (row[0])))
         
@@ -127,22 +132,49 @@ class IPRStatsData:
     
     # Generate a chart given [(label1, label2, ), (value1, value2, )] data
     # Returns True or False depending on if the chart was generated
-    def get_chart(self, chart_data, chart_title, chart_filename, chart_type='pylab'):
+    def get_chart(self, chart_data, chart_title, chart_filename,
+                  chart_type='pie', chart_gen='pylab'):
+        
+        if not chart_data:
+            return False
+        
         if chart_data:
             [count, labels] = chart_data
             chart_generated = False
-            if chart_type == 'google':
-                chart = PieChart2D(730, 300)
-                chart.set_colours(('66FF66', 'FFFF66', '66FF99'))
+            if chart_gen == 'google':
+                if chart_type == 'pie':
+                    chart = PieChart2D(730, 300)
+                    chart.add_data(list(count))
+                    chart.set_pie_labels(list(labels))
+                elif chart_type == 'bar':
+                    barwidth = 10
+                    height = len(count) * (barwidth+8) + 35
+                    stp = int(ceil(count[0] / 10.0))
+                    max_x = min(count[0]/stp + 1, 11) * stp
+                    chart = GroupedHorizontalBarChart(730, height,
+                                                      x_range=(0, max_x))
+                    chart.set_bar_width(barwidth)
+                    chart.add_data(list(count))
+                    labels = list(labels)
+                    labels.reverse()
+                    '''
+                    class FakeAxis:
+                        def __init__(self):
+                            self.axis_type = 'x'
+                            self.positions = None
+                            self.has_style = False
+                    
+                    chart.axis.append(FakeAxis())
+                    '''
+                    chart.set_axis_labels('x', range(0,max_x + 1, stp))
+                    chart.set_axis_labels('y', labels)
+                    
                 chart.set_title(chart_title)
-                chart.add_data(list(count))
-                chart.set_pie_labels(list(labels))
-                try:
-                    chart.download(chart_filename)
-                    return True
-                except:
-                    chart_generated = False
-            if (chart_type == 'pylab' or not chart_generated) and pylab_avail:
+                chart.set_colours(('66FF66', 'FFFF66', '66FF99'))
+                chart.download(chart_filename)
+                return True
+                    
+            if (chart_gen == 'pylab' or not chart_generated) and pylab_avail:
                 try:
                     figure(figsize=(7, 2), dpi=150)
                     axis('scaled')
@@ -156,54 +188,6 @@ class IPRStatsData:
                     return False
             return False
     
-    # Sets the match cursor for iterating through the matches
-    def init_match_data(self, app, limit=None):
-        
-        if not limit:
-            limit = self.config.get('general','max_table_results')
-        self.current_app = app
-        
-        self.match_cursor.execute("""
-            select   A.name, B.match_id, C.class_id, A.count
-            from     ( select   name, pim_id, count(1) as count
-                       from     `%(session)s_iprmatch`
-                       where    db_name = '%(db)s'
-                       group by id
-                       order by count desc, id asc, name asc
-                       limit    %(limit)s
-                     ) as A
-                     left outer join `%(session)s_protein_interpro_match` as B on A.pim_id = B.pim_id
-                     left outer join `%(session)s_protein_classification` as C on B.protein_id = C.protein_id
-            order by A.count desc, A.name asc;""" %({'session':self.session, 'db':app, 'limit':limit}))
-
-    # Get the raw database results from the match data query
-    # Returns (Name, DB_ID, GO_ID, Count) or None
-    def get_raw_match_data_row(self):
-        return self.match_cursor.fetchone()
-    
-    # Appends the database url and GO url to the raw match data
-    # Returns (DB_ID, DB_Name, DB_URL, Count, GO_Name, GO_URL) or None
-    def get_link_data_row(self):
-        row = self.get_raw_match_data_row()
-        if row:
-            name, db_id, go_id, count = row
-            if self.current_app in self.linkdb.keys():
-                db_url = self.linkdb[self.current_app] % db_id
-            else:
-                db_url = ''
-            go_url = self.linkdb['GO'] % go_id
-            
-            if self.go_lookup:
-                go_info = self.retrieve_go_info(go_id)
-                if go_info:
-                    return db_id, name, db_url, count, go_info[0], go_url, go_info[1]
-                else:
-                    return db_id, name, db_url, count, go_id, go_url
-            else:
-                return db_id, name, db_url, count, go_id, go_url
-        else:
-            return None
-    #'''   
     # Using PyTables and HDF5 to provide data storage to support potentially
     # gigabytes of table information.
     def initialize_table_data(self, app=None):
@@ -214,57 +198,110 @@ class IPRStatsData:
                 self.current_app = app
         else: self.current_apps = self.apps
         
-        # Open a file for caching data
-        h5f = openFile(self.cache, 'w')
-        group = h5f.createGroup("/", 'tables', 'Table information')
-        
-        for app in self.current_apps:
+        if USEPYTABLES:
             
-            self.match_cursor.execute("""
-                select   A.name, B.match_id, C.class_id, A.count
-                from     ( select   name, pim_id, count(1) as count
-                           from     `%(session)s_iprmatch`
-                           where    db_name = '%(db)s'
-                           group by id
-                           order by count desc, id asc, name asc
-                         ) as A
-                         left outer join `%(session)s_protein_interpro_match` as B on A.pim_id = B.pim_id
-                         left outer join `%(session)s_protein_classification` as C on B.protein_id = C.protein_id
-                order by A.count desc, A.name asc;""" %({'session':self.session, 'db':app}))
+            # Open a file for caching data
+            h5f = openFile(self.cache, 'w')
+            group = h5f.createGroup("/", 'tables', 'Table information')
             
-            table = h5f.createTable(group, app.lower(), TableEntry, app + " table information")
-            table_el = table.row
-            for match in self.match_cursor:
-                name, db_id, go_id, count = match
-                if app in self.linkdb.keys():
-                    db_url = self.linkdb[app] % db_id
-                else:
-                    db_url = ''
-                go_url = self.linkdb['GO'] % go_id
+            for app in self.current_apps:
                 
-                table_el['dbid'] = db_id
-                table_el['name'] = name
-                table_el['dburl'] = db_url
-                table_el['count'] = count
-                table_el['goid'] = go_id
-                table_el['gourl'] = go_url
-                table_el.append()
-            h5f.flush()
-        h5f.close()
-        self.h5f = openFile(self.cache, 'r')
+                self.match_cursor.execute("""
+                    select   A.name, B.match_id, C.class_id, A.count
+                    from     ( select   name, pim_id, count(1) as count
+                               from     `%(session)s_iprmatch`
+                               where    db_name = '%(db)s'
+                               group by id
+                               order by count desc, id asc, name asc
+                             ) as A
+                             left outer join `%(session)s_protein_interpro_match` as B on A.pim_id = B.pim_id
+                             left outer join `%(session)s_protein_classification` as C on B.protein_id = C.protein_id
+                    order by A.count desc, A.name asc;""" %({'session':self.session, 'db':app}))
+                
+                table = h5f.createTable(group, app.lower(), TableEntry, app + " table information")
+                table_el = table.row
+                for match in self.match_cursor:
+                    name, db_id, go_id, count = match
+                    if app in self.linkdb.keys():
+                        db_url = self.linkdb[app] % db_id
+                    else:
+                        db_url = ''
+                    go_url = self.linkdb['GO'] % go_id
+                    
+                    table_el['dbid'] = db_id
+                    table_el['name'] = name
+                    table_el['dburl'] = db_url
+                    table_el['count'] = count
+                    table_el['goid'] = go_id
+                    table_el['gourl'] = go_url
+                    table_el.append()
+                h5f.flush()
+            h5f.close()
+            self.h5f = openFile(self.cache, 'r')
+        else:
+            # Open a file for caching data
+            self.sqlt = sqlite3.connect(self.cache).cursor()
+            
+            
+            for app in self.current_apps:
+                
+                self.match_cursor.execute("""
+                    select   A.name, B.match_id, C.class_id, A.count
+                    from     ( select   name, pim_id, count(1) as count
+                               from     `%(session)s_iprmatch`
+                               where    db_name = '%(db)s'
+                               group by id
+                               order by count desc, id asc, name asc
+                             ) as A
+                             left outer join `%(session)s_protein_interpro_match` as B on A.pim_id = B.pim_id
+                             left outer join `%(session)s_protein_classification` as C on B.protein_id = C.protein_id
+                    order by A.count desc, A.name asc;""" %({'session':self.session, 'db':app}))
+                
+                self.sqlt.execute("""
+                    CREATE TABLE `%s_matches`
+                        ( `dbid` varchar(16) NOT NULL,
+                          `name` varchar(2048) NOT NULL,
+                          `count` int(10) DEFAULT NULL,
+                          `goid` varchar(10) DEFAULT NULL,
+                           PRIMARY KEY (`dbid`,`goid`) );""" % (app))
+                
+                for match in self.match_cursor:
+                    name, db_id, go_id, count = match
+                    try:
+                        self.sqlt.execute("""
+                        INSERT OR IGNORE INTO `%s_matches`
+                            ( `dbid`, `name`, `count`, `goid` )
+                        VALUES ( "%s", "%s", "%s", "%s" );""" %
+                            (app, db_id, name, count, go_id))
+                    except:
+                        print match
         
     def get_table_length(self, app):
-        tablelen = eval("self.h5f.root.tables."+app.lower()+".nrows")
+        if USEPYTABLES:
+            tablelen = eval("self.h5f.root.tables."+app.lower()+".nrows")
+        else:
+            self.sqlt.execute("""
+                select count(1)
+                from %s_matches""" % (app))
+            (tablelen,) = self.sqlt.fetchone()
         maxtablelen = self.config.getint('general','max_table_results')
         if maxtablelen < 0:
             return tablelen
         return min(tablelen, maxtablelen)
     
-    def get_one_row(self, app, row):
-        if app in self.apps:
-            return eval("self.h5f.root.tables."+app.lower()+"["+str(row)+"]")
+    def get_one_row(self, app, rownum):
+        if USEPYTABLES and app in self.apps:
+            row = eval("self.h5f.root.tables."+app.lower()+"["+str(row)+"]")
+        elif app in self.apps:
+            self.sqlt.execute("""
+                select *
+                from   `%s_matches`
+                limit %s, 1
+            """ % (app, rownum))
+            row = self.sqlt.fetchone()
         else:
             return None
+        return row
     
     def get_two_rows(self, app, row):
         if app in self.apps:
@@ -279,13 +316,19 @@ class IPRStatsData:
         else:
             return None
     
-    def get_table_cell(self, app, row, col):
-        if app in self.apps:
+    def get_table_cell(self, app, rownum, colnum):
+        if USEPYTABLES and app in self.apps:
+            if   colnum == 0: colnum = 5
+            elif colnum == 1: colnum = 0
+            elif colnum == 2: colnum = 3
             try:
-                row = eval("self.h5f.root.tables."+app.lower()+"["+str(row)+"]")
-                return row[col]
+                row = eval("self.h5f.root.tables."+app.lower()+"["+str(rownum)+"]")
+                return row[colnum]
             except IndexError:
                 return None
+        elif app in self.apps:
+            colnum += 1
+            return self.get_one_row(app, rownum)[colnum]
         else:
             return None
     
@@ -304,15 +347,15 @@ class IPRStatsData:
     # Closes connections to the databases
     def close(self):
         self.conn.close()
-        self.h5f.close()
-
-class TableEntry(IsDescription):
-    dbid      = StringCol(16)   # 16-character String
-    name      = StringCol(2048) # 2048-character String
-    dburl     = StringCol(2048) # 2048-character String
-    count     = UInt16Col()     # Signed 64-bit integer
-    goid      = StringCol(10)   # 16-character String
-    gourl     = StringCol(2048) # 2048-character String
+        
+if USEPYTABLES:
+    class TableEntry(IsDescription):
+        dbid      = StringCol(16)   # 16-character String
+        name      = StringCol(2048) # 2048-character String
+        dburl     = StringCol(2048) # 2048-character String
+        count     = UInt16Col()     # Signed 64-bit integer
+        goid      = StringCol(10)   # 16-character String
+        gourl     = StringCol(2048) # 2048-character String
     
 
 if __name__ == '__main__':

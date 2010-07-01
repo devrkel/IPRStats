@@ -247,7 +247,9 @@ class IPRStats_Frame(wx.Frame):
         if dlg.ShowModal() == wx.ID_OK:
             self.dirname = dlg.GetPath()
             html = export_html(self.iprstat)
-            html.export(directory=self.dirname, chart=self.config.get('general','chart_type'))
+            html.export(directory=self.dirname,
+                        chart_type=self.config.get('general','chart_type'),
+                        chart_gen=self.config.get('general','chart_gen'))
         dlg.Destroy()
     
     def OnExportXLS(self, event):
@@ -309,7 +311,9 @@ class IPRStats_Frame(wx.Frame):
             counts = self.iprstat.get_counts(app)
             chart_filename = os.path.join(self.sessiondir,app.lower()+'_matches.png')
 
-            if self.iprstat.get_chart(counts, app+' Matches', chart_filename, self.config.get('general', 'chart_type')):
+            if self.iprstat.get_chart(counts, app+' Matches', chart_filename,
+                                    chart_type=self.config.get('general', 'chart_type'),
+                                    chart_gen=self.config.get('general','chart_gen')):
                 chart_img = wx.Bitmap(chart_filename, wx.BITMAP_TYPE_ANY)
                 self.charts[app].SetBitmap(chart_img)
                 self.charts[app].SetMinSize(chart_img.GetSize())

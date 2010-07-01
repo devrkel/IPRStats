@@ -7,6 +7,7 @@ import string
 import os
 import sys
 import ConfigParser
+import platform
 import webbrowser
 import tempfile
 import shutil
@@ -67,15 +68,17 @@ class IPRStats_Frame(wx.Frame):
         
         # Open and parse settings file
         self.configpath = os.path.join(self.iprsdir,'iprstats.cfg')
+        if platform.system() == 'Windows':
+            pymodpath = os.path.join(sys.prefix, 'Lib', 'site-packages',
+                                     'iprstats', 'iprstats.cfg.example')
+        else:
+            pymodpath = os.path.join(sys.prefix, 'share', 'pyshared',
+                                     'iprstats', 'iprstats.cfg.example')
         if not os.path.exists(self.configpath):
             if os.path.exists('iprstats.cfg.example'):
                 shutil.copyfile('iprstats.cfg.example', self.configpath)
-            elif os.path.exists(
-                        '/usr/share/pyshared/iprstats/iprstats.cfg.example'):
-                cf = os.path.join(sys.prefix,'share','pyshared','iprstats',
-                                  'iprstats.cfg.example')
-                cf = os.path.abspath(cf)
-                shutil.copyfile(cf, self.configpath)
+            elif os.path.exists(pymodpath):
+                shutil.copyfile(pymodpath, self.configpath)
             else:
                 print "iprstats: error: config file could not be found"
                 sys.exit(2)

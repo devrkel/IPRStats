@@ -207,6 +207,7 @@ class EBIXML(ContentHandler):
                 for line in sqlfile:
                     self.db_cursor.execute(line)
                 self.db_con.commit()
+                self.db_cursor.close()
                 sqlfile.close()
             else:
                 os.system("mysql %s -u%s -h %s -p%s < %s" %
@@ -217,8 +218,6 @@ class EBIXML(ContentHandler):
                        self.outfile.name))
                 log = open(os.path.join(self.outpath,'tbl_creation.log'), 'a')
                 log.write(str(time.ctime()) + "\t" + self.session + "\n")
-            
-            self.db_cursor.close()
 
 class ParseXMLFile(Thread):
     def __init__(self, filename, session, config,

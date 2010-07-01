@@ -60,10 +60,6 @@ class LinkTable(gridlib.PyGridTableBase):
     def GetValue(self, row, col):
         """Retrieve cell value from the IPRStatsData object"""
         
-        if   col == 0: col = 5
-        elif col == 1: col = 0
-        elif col == 2: col = 3
-        
         cell = self.data.get_table_cell(self.app, row, col)
         if not cell: return None
         return cell

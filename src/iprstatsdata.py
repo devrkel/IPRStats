@@ -81,6 +81,8 @@ class IPRStatsData:
         self.initialize_table_data()
         os.remove(os.path.join(self.sessiondir, 'iprsql.sql'))
         if config.getboolean('local db','use_sqlite'):
+            self.match_cursor.close()
+            self.go_cursor.close()
             sqlitepath = os.path.join(self.sessiondir,
                                 config.get('local db','db'))
             os.remove(sqlitepath)

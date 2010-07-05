@@ -94,7 +94,7 @@ class IPRStats_Frame(wx.Frame):
         # Keep track of current session and open directory
         self.session = None
         self.dirname = ''
-        self.database_results = wx.Listbook(self, -1, style=wx.NB_LEFT)
+        self.database_results = wx.Listbook(self, -1, style=wx.BK_DEFAULT)
         self.iprstat = None
 
         self.tabs = {}

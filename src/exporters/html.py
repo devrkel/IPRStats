@@ -73,12 +73,14 @@ class page:
         """
         if not link_name:
             return ''
+        elif link_name == "None":
+            return 'None'
+        elif not link_url:
+            return link_name
         
         link  = '<a href="' + link_url + '"'
-        if target:
-            link += ' target="' + target + '"'
-        if link_title:
-            link += ' title="' + link_title + '"'
+        if target: link += ' target="' + target + '"'
+        if link_title: link += ' title="' + link_title + '"'
         link += '>' + link_name + '</a>'
 
         return link
@@ -102,9 +104,17 @@ class page:
             row = self.iprsdata.get_one_row(app, r)
             if row:
                 print >> file, '<tr>'
-                print >> file, '<td>' + self.link(row[5], row[2], '_blank') + '</td>'
-                print >> file, '<td>' + str(row[0]) + '</td>'
-                print >> file, '<td>' + self.link(row[3],row[4],'_blank') + '</td>'
+                print >> file, '<td>'
+                print >> file, self.link(row[1],
+                                    self.iprsdata.get_link(self.app, r),
+                                    '_blank')
+                print >> file, '</td>'
+                print >> file, '<td>' + str(row[2]) + '</td>'
+                print >> file, '<td>'
+                print >> file, self.link(row[3],
+                                    self.iprsdata.get_link(self.app, r, True),
+                                    '_blank')
+                print >> file, '</td>'
                 print >> file, '</tr>'
             else:
                 break

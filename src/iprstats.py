@@ -336,14 +336,18 @@ class IPRStats_Frame(wx.Frame):
         """
         grid = event.GetEventObject()
         value = grid.GetCellValue(event.GetRow(), event.GetCol())
-        if value != "None" and event.GetCol() != 1:
+        if event.GetCol() != 1 and value != "None":
             app = grid.GetName()
             row = event.GetRow()
-            if event.GetCol() == 0: col = 2
-            else: col = 4
-            
-            url = self.iprstat.get_table_cell(app, row, col)
-            webbrowser.open(url)
+            col = event.GetCol()
+            print row
+            if col == 0:
+                url = self.iprstat.get_link(app, row)
+            elif col == 2:
+                url = self.iprstat.get_link(app, row, True)
+                
+            if url != None:
+                webbrowser.open(url)
         event.Skip()
 
 if __name__ == "__main__":

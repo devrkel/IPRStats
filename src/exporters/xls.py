@@ -45,13 +45,13 @@ class export_xls:
             row = self.iprsdata.get_one_row(app, r)
             if row:
                 r += 1
-                sheet.write(r, 0, str(row[0])) # Count
-                sheet.write(r, 1, row[5])      # DB Name
-                sheet.write(r, 2, row[1])      # DB ID
+                sheet.write(r, 0, str(row[2])) # Count
+                sheet.write(r, 1, row[1])      # DB Name
+                sheet.write(r, 2, row[0])      # DB ID
                 sheet.write(r, 3, row[3])      # GO Name
                 #                              # GO ID
-                sheet.write(r, 5, row[2])      # DB URL
-                sheet.write(r, 6, row[4])      # GO URL
+                sheet.write(r, 5, self.iprsdata.get_link(app, r)) # DB URL
+                sheet.write(r, 6, self.iprsdata.get_link(app, r, True))#GO URL
                 if len(row) == 7:
                     sheet.write(r, 7, row[6]) # GO Definition
             else:

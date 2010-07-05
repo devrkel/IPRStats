@@ -142,6 +142,10 @@ class IPRStatsData:
         if chart_data:
             [count, labels] = chart_data
             chart_generated = False
+            
+            if len(count) == 0:
+                return False;
+            
             if chart_gen == 'google':
                 if chart_type == 'pie':
                     chart = PieChart2D(730, 300)
@@ -150,7 +154,7 @@ class IPRStatsData:
                 elif chart_type == 'bar':
                     barwidth = 10
                     height = len(count) * (barwidth+8) + 35
-                    stp = int(ceil(count[0] / 10.0))
+                    stp = (count[0] + 9) / 10
                     max_x = min(count[0]/stp + 1, 11) * stp
                     chart = GroupedHorizontalBarChart(730, height,
                                                       x_range=(0, max_x))
@@ -172,21 +176,37 @@ class IPRStatsData:
                     
                 chart.set_title(chart_title)
                 chart.set_colours(('66FF66', 'FFFF66', '66FF99'))
-                chart.download(chart_filename)
-                return True
+                try:
+                    chart.download(chart_filename)
+                    return True
+                except:
+                    print "Could not download google charts;"
+                    if pylab_avail:
+                        print "defaulting to pylab."
                     
             if (chart_gen == 'pylab' or not chart_generated) and pylab_avail:
-                try:
+                if chart_type == 'pie':
+                    try:
+                        figure(figsize=(7, 2), dpi=150)
+                        axis('scaled')
+                        _, tlabels = pie(count, labels=labels, shadow=False)
+                        for label in tlabels:
+                            label.set_size(9)
+                        title(chart_title, fontsize=12)
+                        savefig(chart_filename)
+                        return True
+                    except:
+                        return False
+                elif chart_type == 'bar':
+                    #try:
                     figure(figsize=(7, 2), dpi=150)
-                    axis('scaled')
-                    _, tlabels = pie(count, labels=labels, shadow=False)
-                    for label in tlabels:
-                        label.set_size(9)
+                    #axis('scaled')
+                    barh(range(len(count)-1, -1, -1), count, height=0.6)
                     title(chart_title, fontsize=12)
                     savefig(chart_filename)
                     return True
-                except:
-                    return False
+                    #except:
+                    #    return False
             return False
     
     # Using PyTables and HDF5 to provide data storage to support potentially
@@ -333,8 +353,6 @@ class IPRStatsData:
         else:
             return None
     
-    #'''
-    
     # Retrieve the GO Term name and definition; slow without local installation
     # Returns (GO_Name, GO_Definition) given GO_ID
     def retrieve_go_info(self, go_id):
@@ -344,6 +362,22 @@ class IPRStatsData:
         goinfo = self.go_cursor.fetchone()
             
         return goinfo
+    
+    def get_link(self, app, rownum, go_link=False):
+        row = self.get_one_row(app, rownum)
+        if not row:
+            return None
+        elif go_link:
+            id = row[3]
+        else:
+            id = row[0]
+        
+        if id != None and app in self.linkdb.keys() and not go_link:
+            return self.linkdb[app] % id
+        elif id != None:
+            return self.linkdb['GO'] % id
+        else:
+            return None
     
     # Closes connections to the databases
     def close(self):

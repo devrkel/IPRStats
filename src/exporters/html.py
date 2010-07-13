@@ -185,7 +185,7 @@ class export_html:
         sout = os.path.join(directory, 'style.css')
         sin = os.path.join(self.iprstat.settings.getinstalldir(), 'style.css')
         if directory and os.path.exists(sin):
-            shutil.copyfile('style.css', sout)
+            shutil.copyfile(sin, sout)
         else:
             print "Could not find style.css; Disabling HTML styling"
         

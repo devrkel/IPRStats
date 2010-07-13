@@ -8,23 +8,26 @@ class LinkTable(gridlib.PyGridTableBase):
     visible cells in memory at a given time
     """
 
-    def __init__(self, app, data):
+    def __init__(self, app, data=None):
         """Initialize the table with a specified app and an initialized
-        IPRStatsData object
+        cache object
         """
         gridlib.PyGridTableBase.__init__(self)
         self.app = app
         self.data = data
+        
         self.link = gridlib.GridCellAttr()
         self.link.SetFont(wx.Font(10, wx.FONTFAMILY_DEFAULT,
                           wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, True))
         self.link.SetTextColour('blue')
+        
         self.length = None
         
     def GetAttr(self, row, col, kind):
         """Return styling attributes for a cell
         
-        Makes columns 0 and 2 look like links
+        Makes columns 0 and 2 look like links if their value
+        isn't None; make everything readonly
         """
         attr = gridlib.GridCellAttr()
         if col != 1 and self.GetValue(row, col) != "None":
@@ -44,8 +47,12 @@ class LinkTable(gridlib.PyGridTableBase):
     def GetNumberRows(self):
         """Return the current length of the table"""
         
-        self.length = self.data.get_table_length(self.app)
-        return self.length
+        if self.data:
+            self.length = self.data.get_match_length(self.app)
+            return self.length
+        else:
+            self.length = 0
+            return 0
 
     def GetNumberCols(self):
         """Return the width of the table"""
@@ -58,9 +65,13 @@ class LinkTable(gridlib.PyGridTableBase):
         return False
 
     def GetValue(self, row, col):
-        """Retrieve cell value from the IPRStatsData object"""
+        """Retrieve cell value from the cache object"""
         
-        cell = self.data.get_table_cell(self.app, row, col)
+        if self.data.settings.usegolookup() and col==2:
+            cell = self.data.get_one_cell(self.app, row, col+2)
+        else:
+            cell = self.data.get_one_cell(self.app, row, col)
+            
         if not cell: return None
         return cell
     
@@ -69,13 +80,17 @@ class LinkTable(gridlib.PyGridTableBase):
         
         print 'SetValue(%d, %d, "%s") ignored.' % (row, col, value)
     
-    def Update(self):
+    def Update(self, data=None):
         """Update the table length based on the underlying
-        IPRStatsData object
+        cache object (for if the max_tables_result value is
+        changed).
         """
         
+        if data:
+            self.data = data
+        
         self.GetView().BeginBatch()
-        newlength = self.data.get_table_length(self.app)
+        newlength = self.data.get_match_length(self.app)
         if newlength < self.length:
             msg = gridlib.GridTableMessage(self,
                         gridlib.GRIDTABLE_NOTIFY_ROWS_DELETED,

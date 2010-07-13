@@ -1,60 +1,49 @@
 #!/usr/bin/python
-import os, ConfigParser
-try:
-    from pylab import *
-    pylab_avail = True
-except ImportError:
-    pylab_avail = False
-    
-from pygooglechart import PieChart2D, GroupedHorizontalBarChart
+import os
 import sqlite3
-import tempfile
-try:
-    from tables import *
-    USEPYTABLES = True
-except:
-    USEPYTABLES = False
+
 try:
     import MySQLdb
+    from _mysql_exceptions import OperationalError
 except ImportError:
     pass
-try:
-    from win32com.shell import shellcon, shell            
-    homedir = shell.SHGetFolderPath(0, shellcon.CSIDL_APPDATA, 0, 0)
-except ImportError:
-    homedir = os.path.expanduser("~")
 
-class IPRStatsData:
+class Cache:
+    '''Object to temporarily store aggregate information retrieved
+       by complex, time-intensive queries. This is the top-level class
+       that stores all information in memory.  Subclasses of this
+       class should attempt to preserve memory by caching to disk.
+       
+       Methods you are required to override when making a subclass are:
+       __open_cache__(self)
+       __create_count_group__(self, app)
+       __insert_count_record__(self, app, name, count)
+       __create_match_group__(self, app)
+       __insert_match_record__(self, app, dbid, name, count, goid, goname)
+       get_one_row(self, app, rownum)
+       get_counts(self, app)
+       
+       It is also recommended to override the following methods:
+       __commit_records__(self)
+       __close_writing__(self)
+    '''
     
-    def __init__(self, session, config):
-        self.session = session
-        self.config = config
-        self.go_lookup = self.config.getboolean('general','go_lookup')
-        self.apps = self.config.get('general','apps').replace('\n',' ')
-        self.apps = self.apps.split(', ')
+    def __init__(self, settings):
+        '''Initialize the cache object with a settings object in order
+           for it to get a database connection and the working session
+           directory.
+        '''
+        self.settings = settings
+        self.filename = os.path.join(self.settings.getsessiondir(), 'results')
+        self.db_conn = self.__get_db_conn__()
+        self.db_cursor = self.db_conn.cursor()
+        self.go_conn, self.go_cursor = self.__get_go_db_conn__()
         
-        # Database connections
-        self.conn = self._get_db_connection(config)
-        if self.go_lookup:
-            self.go_conn = self._get_go_db_connection(config)
-            if self.go_conn:
-                self.go_cursor = self.go_conn.cursor()
-        
-        # Separate cursors for counts and matches
-        self.count_cursor = self.conn.cursor()
-        self.match_cursor = self.conn.cursor()
-        
-        # Current app/match db being used
-        self.current_app = None
-        self.current_apps = None
-        self.length = None
-        
-        # Set cache location to avoid unnecessary queries
-        self.sessiondir = os.path.join(homedir, '.iprstats',
-                                       self.session)
-        if not os.path.exists(self.sessiondir):
-            self.sessiondir = tempfile.gettempdir()
-        self.cache = os.path.join(self.sessiondir, 'results')
+        self.count_length = {}
+        self.match_length = {}
+        for app in self.settings.getapps():
+            self.count_length[app] = 0
+            self.match_length[app] = 0
         
         # Hash of database links
         self.linkdb = {
@@ -78,299 +67,229 @@ class IPRStatsData:
             'GENE3D'     :'http://www.cathdb.info/gene3d/%s',
             'GO'         :'http://www.ebi.ac.uk/QuickGO/GTerm?id=%s#ancchart'}
         
-        self.initialize_table_data()
-        os.remove(os.path.join(self.sessiondir, 'iprsql.sql'))
-        if config.getboolean('local db','use_sqlite'):
-            self.match_cursor.close()
-            sqlitepath = os.path.join(self.sessiondir,
-                                config.get('local db','db'))
-            #os.remove(sqlitepath)
+        self.__populate_cache__()
     
-    # Private method to retrieve the local database connection given the configuration
-    # Throws a connection error if it cannot connect
-    def _get_db_connection(self, config):
-        if config.getboolean('local db','use_sqlite'):
-            return sqlite3.connect(os.path.join(homedir, '.iprstats',
-                                        self.session,config.get('local db','db')))
-        else:
-            return MySQLdb.connect(host=self.config.get('local db', 'host'),
-                    user=self.config.get('local db','user'), passwd=self.config.get('local db','passwd'),
-                    port=self.config.getint('local db','port'), db = self.config.get('local db','db'))
+    def __get_db_conn__(self):
+        '''Attempt to get a database connection (either MySQL or SQLite
+           based on settings) and return the connection.  Defaults to
+           SQLite if it cannot get a MySQL connection.
+        '''
+        dbs=self.settings.getlocaldb()
+        
+        if not self.settings.usesqlite():
+            try:
+                conn = self._get_mysql_connection(dbs)
+                default2sqlite = False
+                
+            except OperationalError:
+                default2sqlite = True
+                print "cannot connect to " + dbs.gethost() + \
+                      " using user " + dbs.getuser() + \
+                      ". Defaulting to SQLite."
+                
+        if self.settings.usesqlite() or default2sqlite:
+            sqldb = os.path.join(self.settings.getsessiondir(), dbs.getdb())
+            conn = sqlite3.connect(sqldb)
+        return conn
     
-    # Private method to retrieve GO Term database connection
-    # Throws a connection error if it cannot connect
-    def _get_go_db_connection(self, config):
-        try: 
-            conn = MySQLdb.connect(host=self.config.get('go db', 'host'),
-            user=self.config.get('go db','user'), passwd=self.config.get('go db','passwd'),
-            port=self.config.getint('go db', 'port'), db = self.config.get('go db','db'))
-            return conn
-        except:
-            print 'Cannot connect to GO DB... disabling GO lookup'
-            self.go_lookup = False
-            return None
+    def __get_go_db_conn__(self):
+        '''Retrieve a connection (conn, cursor) to the gene ontology terms
+           database using connection details specified in the settings if
+           the settings if GO lookup is set as True.  Returns (None, None)
+           otherwise.
+        '''
+        if self.settings.usegolookup():
+            dbs=self.settings.getgodb()
+            try:
+                db_conn = self.__get_mysql_conn__(dbs)
+                db_cursor = db_conn.cursor()
+            except:
+                print 'Cannot connect to GO DB... disabling GO lookup'
+                self.settings.setgolookup(False)
+                db_conn = None
+                db_cursor = None
+            return db_conn, db_cursor
+        return None, None
+        
+    def __get_mysql_conn__(self, dbsettings):
+        '''Generic class for retrieving a MySQL connection object
+           given a DBSettings object.
+        '''
+        conn = MySQLdb.connect(host=dbsettings.gethost(),
+                               user=dbsettings.getuser(),
+                               passwd=dbsettings.getpasswd(),
+                               port=dbsettings.getport(),
+                               db=dbsettings.getdb())
+        return conn
     
-    # Get a list of (name, count) pairs for a given app/match db
-    # Returns [(name1, name2, name3), (count1, count2, count3)] or None
-    def get_counts(self, app, limit=None):
-        count_by_name = []
-        if not limit:
-            limit = self.config.getint('general','max_chart_results')
+    def __populate_cache__(self):
+        '''Main method for executing queries against the IPRStats
+           database and storing them in memory or on disk.
+        '''
+        self.__open_cache__()
         
-        if limit == 0:
-            return None
-            
-        self.count_cursor.execute("SELECT name, count(1) as count FROM `%s_iprmatch` " % (self.session) + 
-                        "WHERE db_name ='%s' GROUP BY id " % (app) + 
-                        "ORDER BY count DESC, name asc LIMIT %d" % (limit))
-        for row in self.count_cursor:
-            count_by_name.append((int(row[1]), (row[0])))
+        for app in self.settings.apps:
+            self.__count_query__(app)
+            self.__create_count_group__(app)
+            for name, count in self.db_cursor:
+                self.count_length[app] += 1
+                self.__insert_count_record__(app, name, count)
+            self.__commit_records__()
+                
+            self.__match_query__(app)
+            self.__create_match_group__(app)
+            for name, dbid, goid, count in self.db_cursor:
+                if self.settings.usegolookup():
+                    goname = self.__go_name__(goid)
+                else: goname = None
+                self.match_length[app] += 1
+                self.__insert_match_record__(app, dbid, name, count, goid, goname)
+                
+            self.__commit_records__()
         
-        if len(count_by_name) > 0:
-            return zip(*count_by_name)
-        else:
-            return None
+        self.__close_writing__()
+        self.db_cursor.close()
+        if self.go_cursor:
+            self.go_cursor.close()
     
-    # Generate a chart given [(label1, label2, ), (value1, value2, )] data
-    # Returns True or False depending on if the chart was generated
-    def get_chart(self, chart_data, chart_title, chart_filename,
-                  chart_type='pie', chart_gen='pylab'):
-        
-        if not chart_data:
-            return False
-        
-        if chart_data:
-            [count, labels] = chart_data
-            chart_generated = False
-            
-            if len(count) == 0:
-                return False;
-            
-            if chart_gen == 'google':
-                if chart_type == 'pie':
-                    chart = PieChart2D(730, 300)
-                    chart.add_data(list(count))
-                    chart.set_pie_labels(list(labels))
-                elif chart_type == 'bar':
-                    barwidth = 10
-                    height = len(count) * (barwidth+8) + 35
-                    stp = (count[0] + 9) / 10
-                    max_x = min(count[0]/stp + 1, 11) * stp
-                    chart = GroupedHorizontalBarChart(730, height,
-                                                      x_range=(0, max_x))
-                    chart.set_bar_width(barwidth)
-                    chart.add_data(list(count))
-                    labels = list(labels)
-                    labels.reverse()
-                    '''
-                    class FakeAxis:
-                        def __init__(self):
-                            self.axis_type = 'x'
-                            self.positions = None
-                            self.has_style = False
-                    
-                    chart.axis.append(FakeAxis())
-                    '''
-                    chart.set_axis_labels('x', range(0,max_x + 1, stp))
-                    chart.set_axis_labels('y', labels)
-                    
-                chart.set_title(chart_title)
-                chart.set_colours(('66FF66', 'FFFF66', '66FF99'))
-                try:
-                    chart.download(chart_filename)
-                    return True
-                except:
-                    print "Could not download google charts;"
-                    if pylab_avail:
-                        print "defaulting to pylab."
-                    
-            if (chart_gen == 'pylab' or not chart_generated) and pylab_avail:
-                if chart_type == 'pie':
-                    try:
-                        figure(figsize=(7, 2), dpi=150)
-                        axis('scaled')
-                        _, tlabels = pie(count, labels=labels, shadow=False)
-                        for label in tlabels:
-                            label.set_size(9)
-                        title(chart_title, fontsize=12)
-                        savefig(chart_filename)
-                        return True
-                    except:
-                        return False
-                elif chart_type == 'bar':
-                    #try:
-                    figure(figsize=(7, 2), dpi=150)
-                    #axis('scaled')
-                    barh(range(len(count)-1, -1, -1), count, height=0.6)
-                    title(chart_title, fontsize=12)
-                    savefig(chart_filename)
-                    return True
-                    #except:
-                    #    return False
-            return False
+    def __open_cache__(self):
+        '''Method for creating the underlying data structure
+           for storing query results.  Subclasses must override
+           this method to open handles to disk-based structures
+           or create memory maps.
+        '''
+        self.table = {}
+        self.count = {}
     
-    # Using PyTables and HDF5 to provide data storage to support potentially
-    # gigabytes of table information.
-    def initialize_table_data(self, app=None):
-        if app:
-            if type(app) is str:
-                self.current_apps = [str]
-            else:
-                self.current_app = app
-        else: self.current_apps = self.apps
+    def __count_query__(self, app):
+        '''Method for executing the query used to retrieve
+           information for making charts.
+        '''
+        self.db_cursor.execute("""
+            select   name, count(1) as count
+            from     `%(session)s_iprmatch`
+            where    db_name = '%(db)s'
+            group by id
+            order by count desc, name asc""" %
+            ({'session':self.settings.session, 'db':app}))
+    
+    def __create_count_group__(self, app):
+        '''Method used for creating a group or section in
+           the underlying data structure for a particular
+           app to store chart data.  Subclasses of Cache
+           must override this method to make a group in the
+           disk-based structure.
+        '''
+        self.count[app] = []
+    
+    def __insert_count_record__(self, app, name, count):
+        '''Method for inserting a chart data record into
+           the underlying cache data structure.  Subclasses
+           must override this method.
+        '''
+        self.count[app].append((count, name))
         
-        if USEPYTABLES:
-            
-            # Open a file for caching data
-            h5f = openFile(self.cache, 'w')
-            group = h5f.createGroup("/", 'tables', 'Table information')
-            
-            for app in self.current_apps:
-                
-                self.match_cursor.execute("""
-                    select   A.name, B.match_id, C.class_id, A.count
-                    from     ( select   name, pim_id, count(1) as count
-                               from     `%(session)s_iprmatch`
-                               where    db_name = '%(db)s'
-                               group by id
-                               order by count desc, id asc, name asc
-                             ) as A
-                             left outer join `%(session)s_protein_interpro_match` as B on A.pim_id = B.pim_id
-                             left outer join `%(session)s_protein_classification` as C on B.protein_id = C.protein_id
-                    order by A.count desc, A.name asc;""" %({'session':self.session, 'db':app}))
-                
-                table = h5f.createTable(group, app.lower(), TableEntry, app + " table information")
-                table_el = table.row
-                for match in self.match_cursor:
-                    name, db_id, go_id, count = match
-                    if app in self.linkdb.keys():
-                        db_url = self.linkdb[app] % db_id
-                    else:
-                        db_url = ''
-                    go_url = self.linkdb['GO'] % go_id
-                    
-                    table_el['dbid'] = db_id
-                    table_el['name'] = name
-                    table_el['dburl'] = db_url
-                    table_el['count'] = count
-                    table_el['goid'] = go_id
-                    table_el['gourl'] = go_url
-                    table_el.append()
-                h5f.flush()
-            h5f.close()
-            self.h5f = openFile(self.cache, 'r')
-        else:
-            # Open a file for caching data
-            self.sqlt = sqlite3.connect(self.cache).cursor()
-            
-            
-            for app in self.current_apps:
-                
-                self.match_cursor.execute("""
-                    select   A.name, B.match_id, C.class_id, A.count
-                    from     ( select   name, pim_id, count(1) as count
-                               from     `%(session)s_iprmatch`
-                               where    db_name = '%(db)s'
-                               group by id
-                               order by count desc, id asc, name asc
-                             ) as A
-                             left outer join `%(session)s_protein_interpro_match` as B on A.pim_id = B.pim_id
-                             left outer join `%(session)s_protein_classification` as C on B.protein_id = C.protein_id
-                    order by A.count desc, A.name asc;""" %({'session':self.session, 'db':app}))
-                
-                self.sqlt.execute("""
-                    CREATE TABLE `%s_matches`
-                        ( `dbid` varchar(16) NOT NULL,
-                          `name` varchar(2048) NOT NULL,
-                          `count` int(10) DEFAULT NULL,
-                          `goid` varchar(10) DEFAULT NULL,
-                           PRIMARY KEY (`dbid`,`goid`) );""" % (app))
-                
-                for match in self.match_cursor:
-                    name, db_id, go_id, count = match
-                    try:
-                        self.sqlt.execute("""
-                        INSERT OR IGNORE INTO `%s_matches`
-                            ( `dbid`, `name`, `count`, `goid` )
-                        VALUES ( "%s", "%s", "%s", "%s" );""" %
-                            (app, db_id, name, count, go_id))
-                    except:
-                        print match
+    def __match_query__(self, app):
+        '''Method for executing the query that retrieves table
+           data from the IPRStats database.
+        '''
+        self.db_cursor.execute("""
+            select   A.name, B.match_id, C.class_id, A.count
+            from     ( select   name, pim_id, count(1) as count
+                       from     `%(session)s_iprmatch`
+                       where    db_name = '%(db)s'
+                       group by id
+                       order by count desc, id asc, name asc
+                     ) as A
+                     left outer join `%(session)s_protein_interpro_match` 
+                       as B on A.pim_id = B.pim_id
+                     left outer join `%(session)s_protein_classification`
+                       as C on B.protein_id = C.protein_id
+            group by B.match_id, C.class_id
+            order by A.count desc, A.name asc;""" %
+            ({'session':self.settings.session, 'db':app}))
+    
+    def __create_match_group__(self, app):
+        '''Method used for creating a group or section in
+           the underlying data structure for a particular
+           app to store table data.  Subclasses of Cache
+           must override this method to make a group in the
+           disk-based structure.
+        '''
+        self.table[app] = []
+    
+    def __insert_match_record__(self, app, dbid, name, count, goid, goname):
+        '''Method for inserting a table data record into
+           the underlying cache data structure.  Subclasses
+           must override this method.
+        '''
+        self.table[app].append((name, count, goid, dbid, goname))
         
-    def get_table_length(self, app):
-        if USEPYTABLES:
-            tablelen = eval("self.h5f.root.tables."+app.lower()+".nrows")
-        else:
-            self.sqlt.execute("""
-                select count(1)
-                from %s_matches""" % (app))
-            (tablelen,) = self.sqlt.fetchone()
-        maxtablelen = self.config.getint('general','max_table_results')
+    def __commit_records__(self):
+        '''Method for committing or flushing records to disk
+           that have been retrieved so far.
+        '''
+        pass
+    
+    def __close_writing__(self):
+        '''Method for closing the underlying data structure
+           for writing and opening it for reading.
+        '''
+        pass
+    
+    def get_match_length(self, app):
+        '''Returns the visible number of rows in the stored
+           table data, limited by the "max table results"
+           setting or the number of available table rows.
+        '''
+        matchlen = self.match_length[app]
+        maxtablelen = self.settings.getmaxtableresults()
         if maxtablelen < 0:
-            return tablelen
-        return min(tablelen, maxtablelen)
-    
+            return matchlen
+        return min(matchlen, maxtablelen)
+
+    def get_count_length(self, app):
+        '''Returns the number of results to be displayed
+           in a graph, limited either by the "max chart
+           results" setting or the number of available results.
+        '''
+        countlen = self.count_length[app]
+        maxchartlen = self.settings.chart.getmaxresults()
+        if maxchartlen < 0:
+            return countlen
+        return min(countlen, maxchartlen)
+
     def get_one_row(self, app, rownum):
-        if USEPYTABLES and app in self.apps:
-            row = eval("self.h5f.root.tables."+app.lower()+"["+str(row)+"]")
-        elif app in self.apps:
-            self.sqlt.execute("""
-                select *
-                from   `%s_matches`
-                limit %s, 1
-            """ % (app, rownum))
-            row = self.sqlt.fetchone()
+        '''Return one row of table data for the specified app.
+           This should be overridden in any Cache subclasses
+           to access the underlying data storage object.
+           
+           Returns (dbname, count, goid, dbid, goname)
+        '''
+        if app in self.settings.apps:
+            return self.table[app][rownum]
         else:
             return None
-        return row
-    
-    def get_two_rows(self, app, row):
-        if app in self.apps:
-            if row == 0:
-                rows = eval("self.h5f.root.tables."+app.lower()+"["+str(row)+"]")
-                return [None, rows]
-            try:
-                rows = eval("self.h5f.root.tables."+app.lower()+"["+str(row-1)+":"+str(row+1)+"]")
-                return rows
-            except IndexError:
-                return None
-        else:
-            return None
-    
-    def get_table_cell(self, app, rownum, colnum):
-        if USEPYTABLES and app in self.apps:
-            if   colnum == 0: colnum = 5
-            elif colnum == 1: colnum = 0
-            elif colnum == 2: colnum = 3
-            try:
-                row = eval("self.h5f.root.tables."+app.lower()+"["+str(rownum)+"]")
-                return row[colnum]
-            except IndexError:
-                return None
-        elif app in self.apps:
-            colnum += 1
+        
+    def get_one_cell(self, app, rownum, colnum):
+        '''Returns a particular table cell for application
+           app. This method likely does not need to be
+           overridden in subclasses.
+        '''
+        if app in self.settings.apps:
             return self.get_one_row(app, rownum)[colnum]
         else:
             return None
     
-    # Retrieve the GO Term name and definition; slow without local installation
-    # Returns (GO_Name, GO_Definition) given GO_ID
-    def retrieve_go_info(self, go_id):
-        self.go_cursor.execute(
-            'select name, term_definition from `term` join `term_definition`' + \
-            ' on id = term_id where acc = "%s"' % (go_id))
-        goinfo = self.go_cursor.fetchone()
-            
-        return goinfo
-    
-    def get_link(self, app, rownum, go_link=False):
+    def get_url(self, app, rownum, go_link=False):
+        '''Retrieve the linking URL to a particular app
+           or gene ontology website.
+        '''
         row = self.get_one_row(app, rownum)
-        if not row:
-            return None
-        elif go_link:
-            id = row[3]
-        else:
-            id = row[0]
+        
+        if not row: return None
+        elif go_link: id = row[2]
+        else: id = row[3]
         
         if id != None and app in self.linkdb.keys() and not go_link:
             return self.linkdb[app] % id
@@ -379,20 +298,159 @@ class IPRStatsData:
         else:
             return None
     
-    # Closes connections to the databases
-    def close(self):
-        self.conn.close()
+    def __go_name__(self, go_id):
+        '''Retrieve the gene ontology name for the given
+           term id. This should only be called if GO lookup
+           is set to True.
+        '''
+        self.go_cursor.execute(
+            'select name, term_definition from `term` join `term_definition`' + \
+            ' on id = term_id where acc = "%s"' % (go_id))
+        goinfo = self.go_cursor.fetchone()
         
-if USEPYTABLES:
-    class TableEntry(IsDescription):
-        dbid      = StringCol(16)   # 16-character String
-        name      = StringCol(2048) # 2048-character String
-        dburl     = StringCol(2048) # 2048-character String
-        count     = UInt16Col()     # Signed 64-bit integer
-        goid      = StringCol(10)   # 16-character String
-        gourl     = StringCol(2048) # 2048-character String
+        if goinfo: return goinfo[0]
+        else: return None
     
+    def get_counts(self, app):
+        '''Retrieve an array of data for chart generation.
+           Returns [(value1, value2, ...), (label1, label2, ...)]
+           This method must be overridden in any subclasses
+           to retrieve the data from the underlying structure
+           and return it in the specified format.
+        '''
+        if app in self.settings.apps:
+            counts = [self.count[app][n] for n in \
+                      range(self.get_count_length(app))]
+            counts = zip(*counts)
+            if len(counts) > 0:
+                return counts
+            else:
+                return [None, None]
+        else:
+            return [None, None]
 
+class SQLiteCache(Cache):
+    '''Subclass of Cache that uses a SQLite database to
+       store the results of the MySQL query.
+    '''
+    
+    def __init__(self, settings):
+        Cache.__init__(self, settings)
+    
+    def __open_cache__(self):
+        '''Open a connection and cursor to the SQLite
+           database located at self.filename
+        '''
+        self.conn = sqlite3.connect(self.filename)
+        self.cache_cursor = self.conn.cursor()
+    
+    def __create_count_group__(self, app):
+        '''Create a group (table) in the open SQLite
+           database for storing count query results.
+        '''
+        self.cache_cursor.execute("""
+                CREATE TABLE `%s_counts`
+                    ( `name` varchar(2048) NOT NULL,
+                      `count` int(10) DEFAULT NULL,
+                PRIMARY KEY (`name`) );""" % (app))
+    
+    def __insert_count_record__(self, app, name, count):
+        '''Insert a record retrieved by the MySQL query
+           into the SQLite database $APP_counts table.
+        '''
+        self.cache_cursor.execute("""
+                INSERT OR IGNORE INTO `%s_counts`
+                    ( `name`, `count` )
+                VALUES ( "%s", "%s" );""" %
+                    (app, name, count))
+        
+    def __create_match_group__(self, app):
+        '''Create a group (table) in the open SQLite
+           database for storing match query results.
+        '''
+        self.cache_cursor.execute("""
+                CREATE TABLE `%s_matches`
+                    ( `name` varchar(2048) NOT NULL,
+                      `count` int(10) DEFAULT NULL,
+                      `goid` varchar(10) DEFAULT NULL,
+                      `dbid` varchar(16) NOT NULL,
+                      `goname` varchar(1024) DEFAULT NULL,
+                PRIMARY KEY (`dbid`,`goid`) );""" % (app))
+    
+    def __insert_match_record__(self, app, dbid, name, count, goid, goname):
+        '''Insert a match record into the SQLite database.
+        '''
+        self.cache_cursor.execute("""
+                INSERT OR IGNORE INTO `%s_matches`
+                    ( `name`, `count`, `goid`, `dbid`, `goname` )
+                VALUES ( "%s", "%s", "%s", "%s", "%s" );""" %
+                    (app, name, count, goid, dbid, goname))
+        
+    def __commit_records__(self):
+        '''Commit the statements that have been executed so far.
+        '''
+        self.conn.commit()
+
+    def get_one_row(self, app, rownum):
+        '''Retrieve a row from the match SQLite table for
+           application app.
+           Format: (dbname, count, goid, dbid, goname)
+        '''
+        if app in self.settings.apps:
+            self.cache_cursor.execute("""
+                    select name, count, goid, dbid, goname
+                    from   `%s_matches`
+                    limit %s, 1
+                """ % (app, rownum))
+            return self.cache_cursor.fetchone()
+        else:
+            return None
+    
+    def get_counts(self, app):
+        '''Query the SQLite database for the counts
+           data and return it in the format
+           [(count1, count2, ...), (label1, label2, ...)]
+        '''
+        if app in self.settings.apps:
+            maxresults = self.get_count_length(app)
+            self.cache_cursor.execute("""
+                    select count, name
+                    from   `%s_counts`
+                    limit %s
+                """ % (app, maxresults))
+            results = self.cache_cursor.fetchall()
+            if results:
+                return zip(*results)
+            else:
+                return [None, None]
+        else:
+            return [None, None]
+
+from chart import Chart
+        
+class IPRStatsData:
+    '''This class is the original object used to retrieve
+       aggregate results from the database.  It is now
+       fairly useless except to choose between different
+       cache objects.
+    '''
+    
+    def __init__(self, settings):
+        
+        self.settings = settings
+        self.cache = SQLiteCache(self.settings)
+        
+        self.chart = {}
+        for app in self.settings.getapps():
+            self.chart[app] = Chart(app, self.cache, app + ' Matches')
+            
+        os.remove(os.path.join(self.settings.getsessiondir(), 'iprsql.sql'))
+        #if self.settings.usesqlite():
+        #    sqlitepath = os.path.join(self.settings.getsessiondir(),
+        #                       self.settings.getlocaldb().getdb())
+        #    os.remove(sqlitepath)
+
+'''
 if __name__ == '__main__':
     config = ConfigParser.ConfigParser()
     config.readfp(open('iprstats.cfg'))
@@ -401,4 +459,5 @@ if __name__ == '__main__':
     while True:
         row = i.get_link_data_row()
         if not(row): break
+'''
     

@@ -5,12 +5,11 @@ import wx, sys
 class PropertiesDlg(wx.Dialog):
     """Defines the properties dialog for changing settings"""
     
-    def __init__(self, parent, id, title, config):
+    def __init__(self, parent, id, title, settings):
         """Requires a parent wx object, an id, a title and
         a ConfigParser object for reading and writing settings"""
         
-        self.config = config
-        self.dirname = config.get('general','directory')
+        self.settings = settings
 
         # Dialog initialization and tab creation
         wx.Dialog.__init__(self, parent, id, title)
@@ -60,16 +59,18 @@ class PropertiesDlg(wx.Dialog):
         self.__do_layout()
 
     def __set_properties(self):
+        """Set the default for checkboxes and combo boxes.
+        """
         self.SetTitle("Change properties...")
         
         # Initialize chart type with correct value
-        if self.config.get('general','chart_type').lower() == 'pie':
+        if self.settings.chart.gettype() == 'pie':
             self.ChartTypeCmb.SetSelection(0)
         else:
             self.ChartTypeCmb.SetSelection(1)
             
         # Initialize chart generator with correct value
-        if self.config.get('general','chart_gen').lower() == 'google':
+        if self.settings.chart.getgenerator() == 'google':
             self.ChartGenCmb.SetSelection(0)
         else:
             self.ChartGenCmb.SetSelection(1)
@@ -77,9 +78,9 @@ class PropertiesDlg(wx.Dialog):
         # Initialize SQLite and GO lookup checkboxes with correct value
         if sys.modules.has_key('MySQLdb'):
             self.LDBUseSqliteChk.SetValue(
-                    self.config.getboolean('local db','use_sqlite'))
+                    self.settings.usesqlite())
             self.GDBGoLookupChk.SetValue(
-                    self.config.getboolean('general','go_lookup'))
+                    self.settings.usegolookup())
         else:
             self.LDBUseSqliteChk.SetValue(True)
             self.GDBGoLookupChk.SetValue(False)
@@ -100,6 +101,9 @@ class PropertiesDlg(wx.Dialog):
             self.GDBDBTxt.Disable()
 
     def __do_layout(self):
+        """Place all the defined elements into the
+           correct sizer and fix any formatting issues.
+        """
         MainSzr = wx.FlexGridSizer(2, 1, 0, 0)
         BtnSzr = wx.FlexGridSizer(1, 3, 0, 0)
         DBSzr = wx.BoxSizer(wx.HORIZONTAL)
@@ -218,41 +222,43 @@ class PropertiesDlg(wx.Dialog):
                                 choices=['google', 'pylab'],
                                 style=wx.CB_DROPDOWN)
         self.MaxChartSpn   = wx.SpinCtrl(self.GeneralTab,    -1,
-                                self.config.get('general','max_chart_results')
+                                str(self.settings.chart.getmaxresults())
                                 , min=0, max=35)
         self.MaxTableSpn   = wx.SpinCtrl(self.GeneralTab,    -1,
-                                self.config.get('general','max_table_results')
+                                str(self.settings.getmaxtableresults())
                                 , min=-1, max=2147483647) #32 bit signed int
         
         # Local database settings
+        dbsettings = self.settings.getlocaldb()
         self.LDBUseSqliteChk=wx.CheckBox(self.DBSettingsTab, -1, '')
         self.LDBHostTxt    = wx.TextCtrl(self.DBSettingsTab, -1,
-                                self.config.get('local db','host'))
+                                dbsettings.gethost())
         self.LDBUserTxt    = wx.TextCtrl(self.DBSettingsTab, -1,
-                                self.config.get('local db','user'))
+                                dbsettings.getuser())
         self.LDBPasswrdTxt = wx.TextCtrl(self.DBSettingsTab, -1,
-                                self.config.get('local db','passwd'),
+                                dbsettings.getpasswd(),
                                 style=wx.TE_PASSWORD)
         self.LDBPortSpn    = wx.SpinCtrl(self.DBSettingsTab, -1,
-                                self.config.get('local db','port'),
+                                str(dbsettings.getport()),
                                 min=0, max=10000)
         self.LDBDBTxt= wx.TextCtrl(self.DBSettingsTab, -1,
-                                self.config.get('local db','db'))
+                                dbsettings.getdb())
         
         # Gene Ontology database settings
+        dbsettings = self.settings.getgodb()
         self.GDBGoLookupChk= wx.CheckBox(self.DBSettingsTab, -1, '')
         self.GDBHostTxt    = wx.TextCtrl(self.DBSettingsTab, -1,
-                                self.config.get('go db','host'))
+                                dbsettings.gethost())
         self.GDBUserTxt    = wx.TextCtrl(self.DBSettingsTab, -1,
-                                self.config.get('go db','user'))
+                                dbsettings.getuser())
         self.GDBPasswrdTxt = wx.TextCtrl(self.DBSettingsTab, -1,
-                                self.config.get('go db','passwd'),
+                                dbsettings.getpasswd(),
                                 style=wx.TE_PASSWORD)
         self.GDBPortSpn    = wx.SpinCtrl(self.DBSettingsTab, -1,
-                                self.config.get('go db','port'),
+                                str(dbsettings.getport()),
                                 min=0, max=10000)
         self.GDBDBTxt= wx.TextCtrl(self.DBSettingsTab, -1,
-                                self.config.get('go db','db'))
+                                dbsettings.getdb())
 
     def OnUseSqlite(self, event):
         """Prevents user from disabling SQLite if MySQLdb is not installed
@@ -306,27 +312,31 @@ class PropertiesDlg(wx.Dialog):
     def SaveProperties(self):
         """Writes all the dialog settings back to self.config
         """
-        self.config.set('general', 'chart_type',
+        config = self.settings.getconfigparser()
+        
+        config.set('general', 'chart_type',
                         self.ChartTypeCmb.GetValue().lower())
-        self.config.set('general', 'chart_gen',
+        config.set('general', 'chart_gen',
                         self.ChartGenCmb.GetValue().lower())
-        self.config.set('general', 'max_chart_results',
+        config.set('general', 'max_chart_results',
                         self.MaxChartSpn.GetValue())
-        self.config.set('general', 'max_table_results',
+        config.set('general', 'max_table_results',
                         self.MaxTableSpn.GetValue())
-        self.config.set('local db', 'use_sqlite',
+        config.set('local db', 'use_sqlite',
                         str(self.LDBUseSqliteChk.GetValue()))
-        self.config.set('local db', 'host', self.LDBHostTxt.GetValue())
-        self.config.set('local db', 'user', self.LDBUserTxt.GetValue())
-        self.config.set('local db', 'passwd',
+        config.set('local db', 'host', self.LDBHostTxt.GetValue())
+        config.set('local db', 'user', self.LDBUserTxt.GetValue())
+        config.set('local db', 'passwd',
                         self.LDBPasswrdTxt.GetValue())
-        self.config.set('local db', 'port', self.LDBPortSpn.GetValue())
-        self.config.set('local db', 'db',
+        config.set('local db', 'port', self.LDBPortSpn.GetValue())
+        config.set('local db', 'db',
                         str(self.LDBDBTxt.GetValue()))
-        self.config.set('general', 'go_lookup',
+        config.set('go db', 'go_lookup',
                         str(self.GDBGoLookupChk.GetValue()))
-        self.config.set('go db', 'host', self.GDBHostTxt.GetValue())
-        self.config.set('go db', 'user', self.GDBUserTxt.GetValue())
-        self.config.set('go db', 'passwd', self.GDBPasswrdTxt.GetValue())
-        self.config.set('go db', 'port', self.GDBPortSpn.GetValue())
-        self.config.set('go db', 'db', str(self.GDBDBTxt.GetValue()))
+        config.set('go db', 'host', self.GDBHostTxt.GetValue())
+        config.set('go db', 'user', self.GDBUserTxt.GetValue())
+        config.set('go db', 'passwd', self.GDBPasswrdTxt.GetValue())
+        config.set('go db', 'port', self.GDBPortSpn.GetValue())
+        config.set('go db', 'db', str(self.GDBDBTxt.GetValue()))
+        
+        self.settings.setconfigparser()

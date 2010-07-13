@@ -12,15 +12,15 @@ user = root
 port = 3306
 
 [go db]
-passwd = password
-db = go_terms
-host = localhost
-user = root
-port = 3306
+go_lookup = False
+passwd = amigo
+db = go_latest
+host = mysql.ebi.ac.uk
+user = go_select
+port = 4085
 
 [general]
-max_table_results = 35
-go_lookup = true
+max_table_results = -1
 apps = PFAM, PIR, GENE3D, HAMAP, PANTHER, PRINTS, PRODOM,
 	PROFILE, PROSITE, SMART, SUPERFAMILY, TIGRFAMs
 max_chart_results = 10

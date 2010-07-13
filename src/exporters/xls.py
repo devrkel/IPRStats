@@ -1,5 +1,5 @@
 #!/usr/bin/python
-import xlwt
+import lib.xlwt as xlwt
 
 class export_xls:
     """Class for exporting IPRStatsData as a spreadsheet.
@@ -7,11 +7,9 @@ class export_xls:
     Each application will be generated in its own worksheet.
     """
     
-    def __init__(self, iprstatsdata):
+    def __init__(self, cache):
         """Initialize the exporter with the initialized IPRStatsData object"""
-        self.iprsdata = iprstatsdata
-        self.apps = self.iprsdata.config.get('general','apps').\
-                                    replace('\n',' ').split(', ')
+        self.cache = cache
         
     def _generate_sheet(self, app, xls_doc):
         """Generate a single worksheet with a single app
@@ -40,18 +38,17 @@ class export_xls:
         sheet.write(0, 6, "GO Link")
         
         # Write a row to the spreadsheet for each row in iprstatsdata
-        length = self.iprsdata.get_table_length(app)
+        length = self.cache.get_match_length(app)
         for r in range(length):
-            row = self.iprsdata.get_one_row(app, r)
+            row = self.cache.get_one_row(app, r)
             if row:
-                r += 1
-                sheet.write(r, 0, str(row[2])) # Count
-                sheet.write(r, 1, row[1])      # DB Name
-                sheet.write(r, 2, row[0])      # DB ID
-                sheet.write(r, 3, row[3])      # GO Name
-                #                              # GO ID
-                sheet.write(r, 5, self.iprsdata.get_link(app, r)) # DB URL
-                sheet.write(r, 6, self.iprsdata.get_link(app, r, True))#GO URL
+                sheet.write(r+1, 0, str(row[1])) # Count
+                sheet.write(r+1, 1, row[0])      # DB Name
+                sheet.write(r+1, 2, row[3])      # DB ID
+                sheet.write(r+1, 3, row[4])      # GO Name
+                sheet.write(r+1, 4, row[2])      # GO ID
+                sheet.write(r+1, 5, self.cache.get_url(app, r)) # DB URL
+                sheet.write(r+1, 6, self.cache.get_url(app, r, True))#GO URL
                 if len(row) == 7:
                     sheet.write(r, 7, row[6]) # GO Definition
             else:
@@ -68,7 +65,7 @@ class export_xls:
         if app:
             self._generate_sheet(app, xls_doc)
         else:
-            for app in self.apps:
+            for app in self.cache.settings.getapps():
                 self._generate_sheet(app, xls_doc)
         
         if filename:

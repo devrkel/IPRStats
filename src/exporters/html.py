@@ -3,91 +3,87 @@ import os
 import sys
 import shutil
 
-class page:
-    '''Class for defining and outputting a single HTML page.
+class export_html:
+    """Class for exporting all pages at one time"""
     
-    A single HTML page can be created given a specific member database
-    app and an IPRStatsData object.
-    '''
+    def __init__(self, iprstatsdata):
+        """Initialize the object with the required cache object"""
+        self.iprstat = iprstatsdata
     
-    def __init__(self, app, iprstatsdata, directory=None, menu=None,
-                chart_type=None, chart_gen=None, log=None):
-        """Initialize a single HTML page
+    def __get_link__(self, link_name, link_url, target=None, link_title=None):
+        """Create a string containing a generic html link
         
-        Requires a specific app and an IPRStatsData object containing the
-        data to be displayed in the HTML page.  Optional arguments include:
-            directory - the output HTML directory, defaults to stdout
-            menu - whether or not to display a menu on the page
-            chart_gen - 'google' or 'pylab' charts?
-            log - currently not used
+        link_name - the name of the link to be displayed to the user
+        link_url - the website address of the link
+        target - target window for the link to launch in;
+        "_blank", "_parent", "_self" (default), or "_top" 
+        link_title - hover-over text of the link
+        
+        returns a string containing the link HTML
         """
-        self.app = app
-        self.iprsdata = iprstatsdata
-        self.directory = directory
-        self.menu = menu
-        self.chart_type = chart_type
-        self.chart_gen = chart_gen
-        self.log = log
+        
+        link = '<a href="' + str(link_url) + '"'
+        if target:
+            link += ' target="' + target + '"'
+        if link_title:
+            link += ' title="' + link_title + '"'
+        link += '>' + str(link_name) + '</a>'
+        return link
     
-    def chart(self, chart_data, chart_title, chart_filename,
-              chart_type=None, chart_gen=None):
-        """Saves a pie chart to the export directory
+    def __get_menu__(self, menu_links, current_page=None, menu_id=None):
+        """Generate an HTML list of links to be styled with CSS into a menu
+        
+        Requires a list of links of form [(title1, url1), (title2, url2), ...]
+        current_page - if specified, will add class="selected" to that link
+        menu_id - list id for identification and styling
+        """
+        
+        menu = '<ul class="menu"'
+        if menu_id:
+            menu += ' id="' + menu_id + '"'
+            
+        for name, url in menu_links:
+            menu += '<li'
+            if name == current_page or url == current_page:
+                menu += ' class="selected"'
+            menu += '>' + self.__get_link__(name, url) + '</li>'
+        menu += '</ul>'
+            
+        return menu
+    
+    def __get_chart__(self, app, directory=None):
+        """Saves the application chart to the given directory
         
         chart_data of form [(label1, label2, ...), (value1, value2, ...)]
         chart_title - title to be displayed above the chart
         chart_filename - location to save the chart
         chart_type (optional) - 'google' or 'pylab'
         
-        returns an HTML img tag or None
+        Returns: an HTML img tag (str) or None
         """
         
-        # For logging -- currently not being used
-        if chart_type == 'google' and self.log:
-            self.log.write('Downloading ' + chart_title + ' from Google Charts...\n')
-            self.log.flush()
-        elif chart_type == 'pylab' and self.log:
-            self.log.write('Creating chart ' + chart_title + '...\n')
-            self.log.flush()
+        if directory:
+            # Get chart from cache and create the img tag
+            chart = self.iprstat.chart[app]
+            filename = os.path.join(directory,app.lower()+'_matches.png')
             
-        # Get chart from IPRStatsData object and create the img tag
-        if self.iprsdata.get_chart(chart_data, chart_title, chart_filename,
-                                   chart_type, chart_gen):
+            if os.path.exists(chart.GetFilename()):
+                shutil.copy(chart.GetFilename(), filename)
+            elif chart.Save(filename):
+                pass
+            else:
+                return ''
+            
             img  = '<img'
-            img += ' src="' + os.path.basename(chart_filename) + '"'
-            img += ' alt="' + chart_title + '" />'
+            img += ' src="' + os.path.basename(filename) + '"'
+            img += ' alt="' + app + ' Matches" />'
             return img
         else:
-            return None
-    
-    # Generates a generic link object with link_name and link_url
-    def link(self, link_name, link_url, target=None, link_title=None):
-        """Create a string containing a generic html link
-        
-        link_name - the name of the link to be displayed to the user
-        link_url - the website address of the link
-        target - target window for the link to launch in;
-                 "_blank", "_parent", "_self" (default), or "_top" 
-        link_title - hover-over text of the link
-        
-        returns a string containing the link HTML
-        """
-        if not link_name:
             return ''
-        elif link_name == "None":
-            return 'None'
-        elif not link_url:
-            return link_name
-        
-        link  = '<a href="' + link_url + '"'
-        if target: link += ' target="' + target + '"'
-        if link_title: link += ' title="' + link_title + '"'
-        link += '>' + link_name + '</a>'
-
-        return link
     
-    def link_table(self, app, file):
-        """Prints the HTML for a link table using iprstatsdata
-        to the supplied handle.
+    def __get_table__(self, app, file):
+        """Prints the generated link table to the supplied handle
+        using the cache object for data.
         """
         
         # Create title row for the table
@@ -98,22 +94,26 @@ class page:
         print >> file, '    <th>Link</th>'
         print >> file, '  </tr>'
         
-        # Create a table row for each row in IPRStatsData
-        length = self.iprsdata.get_table_length(app)
+        # Create a table row for each row in the cache
+        length = self.iprstat.cache.get_match_length(app)
         for r in range(length):
-            row = self.iprsdata.get_one_row(app, r)
+            row = self.iprstat.cache.get_one_row(app, r)
             if row:
                 print >> file, '<tr>'
                 print >> file, '<td>'
-                print >> file, self.link(row[1],
-                                    self.iprsdata.get_link(self.app, r),
+                print >> file, self.__get_link__(row[0],
+                                    self.iprstat.cache.get_url(app, r),
                                     '_blank')
                 print >> file, '</td>'
-                print >> file, '<td>' + str(row[2]) + '</td>'
+                print >> file, '<td>' + str(row[1]) + '</td>'
                 print >> file, '<td>'
-                print >> file, self.link(row[3],
-                                    self.iprsdata.get_link(self.app, r, True),
+                
+                if self.iprstat.settings.usegolookup(): cell3 = row[4]
+                else: cell3 = row[2]
+                print >> file, self.__get_link__(cell3,
+                                    self.iprstat.cache.get_url(app, r, True),
                                     '_blank')
+                
                 print >> file, '</td>'
                 print >> file, '</tr>'
             else:
@@ -121,26 +121,18 @@ class page:
 
         print >> file, '</table>'
     
-    def export(self):
-        """Generate an HTML page using the info supplied at initialization"""
+    def export_page(self, app, directory=None):
+        """Export an HTML page using the cache from initialization
         
-        # Ignore for now, not using a log
-        if self.log:
-            self.log.write("Creating page " + self.app.lower() + ".html...\n")
-            self.log.flush()
+           app - specific app to export
+           directory - output directory or sys.stdout if None
+        """
         
         # Use the supplied export directory or default to sys.stdout
-        if self.directory:
-            f = open(os.path.join(self.directory, self.app.lower()+'.html'),'w')
+        if directory:
+            f = open(os.path.join(directory, app.lower()+'.html'),'w')
         else:
             f = sys.stdout
-        
-        # Begin downloading the chart before generating page HTML
-        counts = self.iprsdata.get_counts(self.app)
-        if self.directory: chart_filename = os.path.join(self.directory, self.app.lower()+'_matches.png')
-        else: chart_filename = self.app.lower()+'_matches.png'
-        chart = self.chart(counts, self.app+' Matches', chart_filename,
-                           self.chart_type, self.chart_gen)
 
         # Standard header for each page
         print >> f, '<html xmlns="http://www.w3.org/1999/xhtml">'
@@ -159,15 +151,18 @@ class page:
         
         # Print the given menu and content of the page
         print >> f, '   <div id="middlesec">'
-        print >> f,      self.menu
+        
+        links = [(item, item.lower() + '.html')
+                 for item in self.iprstat.settings.apps]
+        print >> f,      self.__get_menu__(links, menu_id='navigation')
+        
         print >> f, '    <div id="content">'
         
         # If a chart was generated, print the HTML img tag
-        if chart:
-            print >> f,   chart
+        print >> f, self.__get_chart__(app, directory)
             
         # Generate the link table
-        self.link_table(self.app, f)
+        self.__get_table__(app, f)
         
         # Print the standard footer for each page
         print >> f, '    </div>'
@@ -179,91 +174,24 @@ class page:
         print >> f, '</html>'
 
         f.close()
-
-class export_html:
-    """Class for exporting all pages at one time"""
     
-    def __init__(self, iprstatsdata):
-        """Initialize the object with the required IPRStatsData object"""
-        self.iprsdata = iprstatsdata
-        self.apps = self.iprsdata.config.get('general','apps').replace('\n',' ').split(', ')
-    
-    def _generate_link(self, link_name, link_url, target=None, link_title=None):
-        """Create a string containing a generic html link
+    def export(self, directory=None):
+        """Export all pages as HTML
         
-        link_name - the name of the link to be displayed to the user
-        link_url - the website address of the link
-        target - target window for the link to launch in;
-                 "_blank", "_parent", "_self" (default), or "_top" 
-        link_title - hover-over text of the link
-        
-        returns a string containing the link HTML
-        """
-        
-        link = '<a href="'+link_url+'"'
-        if target:
-            link += ' target="' + target + '"'
-        if link_title:
-            link += ' title="' + link_title + '"'
-        link += '>' + link_name + '</a>'
-        return link
-    
-    def _generate_menu(self, menu_links, current_page=None, menu_id=None):
-        """Generate a list of links to be styled with CSS into a menu
-        
-        Requires a list of links of form [(title1, url1), (title2, url2), ...]
-        current_page - if specified, will add class="selected" to that link
-        menu_id - list id for identification and styling
-        """
-        
-        menu = '<ul class="menu"'
-        if menu_id:
-            menu += ' id="'+menu_id+'"'
-            
-        for name, url in menu_links:
-            menu += '<li'
-            if name == current_page or url == current_page:
-                menu += ' class="selected"'
-            menu += '>' + self._generate_link(name, url) + '</li>'
-        menu += '</ul>'
-            
-        return menu
-    
-    def export(self, app=None, directory=None, chart_type=None,
-               chart_gen=None, log=None):
-        """Export all or a single page as HTML
-        
-        app - used to limit export to a single page
         directory - HTML output directory (default=sys.stdout)
-        chart - 'google', 'pylab', or None
-        log - not currently being used
         """
         
         # Copy the static CSS to the export directory to style the HTML
         sout = os.path.join(directory, 'style.css')
-        if directory and \
-            os.path.exists(os.path.join(os.getcwd(), 'style.css')):
+        sin = os.path.join(self.iprstat.settings.getinstalldir(), 'style.css')
+        if directory and os.path.exists(sin):
             shutil.copyfile('style.css', sout)
-        elif os.path.exists(os.path.join('/usr/share/pyshared/iprstats',
-                                         'style.css')):
-            shutil.copyfile('/usr/share/pyshared/iprstats/style.css', sout)
         else:
             print "Could not find style.css; Disabling HTML styling"
         
         # Export a single app or all apps
-        if app:
-            p = page(app, directory, chart_type=chart_type,
-                     chart_gen=chart_gen, log=log)
-            p.export()
-        else:
-            links = []
-            for app in self.apps:
-                links.append((app, app.lower() + '.html'))
-            menu = self._generate_menu(links, menu_id='navigation')
-            for app in self.apps:
-                p = page(app, self.iprsdata, directory=directory, menu=menu,
-                         chart_type=chart_type, chart_gen=chart_gen, log=log)
-                p.export()
+        for app in self.iprstat.settings.apps:
+            self.export_page(app, directory=directory)
 '''
 if __name__ == '__main__':
 

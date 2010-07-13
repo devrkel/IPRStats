@@ -30,6 +30,7 @@ class IPRStatsMenu(wx.MenuBar):
         self.file.AppendItem(self.save_as)
         self.file.AppendItem(self.export_html)
         self.file.AppendItem(self.export_xls)
+        self.save_as.Enable(False)
         self.export_html.Enable(False)
         self.export_xls.Enable(False)
         self.file.AppendItem(self.properties)

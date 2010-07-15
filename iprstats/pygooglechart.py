@@ -20,14 +20,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
 
-import os
 import urllib
 import urllib2
-import math
-import random
 import re
 import warnings
-import copy
 
 # Helper variables and functions
 # -----------------------------------------------------------------------------
@@ -621,7 +617,7 @@ class Chart(object):
             self.axis[axis_index].set_positions(positions)
         except IndexError:
             raise InvalidParametersException('Axis index %i has not been ' \
-                'created' % axis)
+                'created' % axis_index)
 
     def set_axis_style(self, axis_index, colour, font_size=None, \
             alignment=None):
@@ -629,7 +625,7 @@ class Chart(object):
             self.axis[axis_index].set_style(colour, font_size, alignment)
         except IndexError:
             raise InvalidParametersException('Axis index %i has not been ' \
-                'created' % axis)
+                'created' % axis_index)
 
     def axis_to_url(self):
         available_axis = []
@@ -637,7 +633,6 @@ class Chart(object):
         range_axis = []
         positions = []
         styles = []
-        index = -1
         for axis in self.axis:
             available_axis.append(axis.axis_type)
             if isinstance(axis, RangeAxis):

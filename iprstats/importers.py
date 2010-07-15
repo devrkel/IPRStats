@@ -1,5 +1,7 @@
 #!/usr/bin/python
-import os, sys, time
+import os
+import sys
+import time
 
 try: import MySQLdb
 except ImportError:
@@ -13,8 +15,7 @@ except ImportError:
 
 import shutil
 from threading import Thread
-from xml.sax import ContentHandler
-from xml.sax import make_parser
+from xml.sax import ContentHandler, make_parser
 from xml.sax.handler import feature_namespaces
 
 '''
@@ -235,80 +236,32 @@ class ParseXMLFile(Thread):
         parser.setContentHandler(exh)
         parser.parse(self.filename)
         del parser
-'''
-if __name__ == '__main__':
-    filelist=  []
-    outdir = None
-    session = None
-    usage = "Usage: ebixml.py [-c | --config= <config_file>] " + \
-                        "[-o | --output= <output_directory>] " + \
-                        "[-s | --session= <unique_identifier>] " +\
-                        "<xml_file ...>"
-    
-    # 
-    try:
-        opts, args = getopt.getopt(sys.argv[1:],"h:c:o:s:",
-                                   ["help","config=","output=","session="])
-    except getopt.GetoptError:
-        print usage
-        sys.exit(2)
-    config = None
-    for o, a in opts:
-        if o in ("-h", "--help"):
-            print usage
-            sys.exit(1)
-        elif o in ("-c", "--config"):
-            config = ConfigParser.ConfigParser()
-            config.readfp(open(a))
-        elif o in ("-o", "--output"):
-            outdir = a
-        elif o in ("-s", "--session"):
-            session = a
-        else:
-            filelist.append(a)
-    if len(args) < 1:
-        print usage
-        sys.exit(2)
-    elif len(args) > 1 and session:
-        print "Parsing more than one XML file; using random session ids"
 
-    print args
-    fver = 1
-    for filename in args:
 
-        # Create a random session id
-        if len(args) > 1:
-            chars = string.letters + string.digits
-            session = ''.join([choice(chars) for i in xrange(8)])
-               
-        print "doing", filename
+import tarfile
+
+class session:
+    '''Opens a session file (.ips) by extracting it as
+       a tar.bz2 into the sessions folder and populating
+       the GUI elements.
+    '''
+    def __init__(self, sessionsdir):
+        '''Initialize the object with the directory to
+           extract to -- Settings.getsessionsdir()
+        '''
+        assert(os.path.isdir(sessionsdir))
+        self.sessionsdir = sessionsdir
         
-        if outdir:
-            path = os.path.join(outdir, session)
+    def open(self, filename):
+        '''Extract the provided filename (typically ending
+           in .ips) to the directory that this object was
+           initialized with. Return the session id (first
+           membername/folder in the archive) or None if invalid.
+        '''
+        if tarfile.is_tarfile(filename):
+            tar = tarfile.open(filename, 'r|bz2')
+            tar.extractall(self.sessionsdir)
+            return tar.getnames()[0]
         else:
-            path = os.path.join(config.get('general','directory'), session)
-            
-        if not(os.path.exists(path)):
-            os.mkdir(path)
-        
-        outfile = os.path.join(path,
-            os.path.splitext(os.path.basename(filename))[0] + ".iprscan.sql")
-
-        # Create a parser
-        parser = make_parser()
-
-        # Tell the parser we are not interested in XML namespaces
-        parser.setFeature(feature_namespaces, 0)
-
-        # Create the Handler
-        if outfile:
-            exh = EBIXML(session, config=config,outfile=open(outfile,"w"))
-        else:
-            raise Exception, "No output file specified."
-
-        parser.setContentHandler(exh)
-        parser.parse(filename)
-        print "Done", filename, "Session", session
-        fver += 1
-        del parser
-'''
+            print "File is not valid .ips format."
+            return None

@@ -645,8 +645,8 @@ class Settings:
         '''
         
         if not config_path:
-            raise TypeError, "argument ConfigPath in __load_settings__() " + \
-                             "cannot be None."
+            raise TypeError, "argument ConfigPath in __load_" + \
+                             "settings__() cannot be None."
         
         config = ConfigParser.ConfigParser()
         

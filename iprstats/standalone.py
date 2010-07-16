@@ -22,6 +22,10 @@ class MainFrame(wx.Frame):
         kwds["style"] = wx.DEFAULT_FRAME_STYLE
         wx.Frame.__init__(self, *args, **kwds)
         
+        self.apps = apps
+        self.tabbook = TabBook(self, self.apps)
+        
+        '''
         self.database_results = wx.Listbook(self, -1, style=wx.BK_LEFT)
         
         self.apps = apps
@@ -31,12 +35,13 @@ class MainFrame(wx.Frame):
 
         # Create a tab, image, and grid for each app
         for app in self.apps:
-            self.tabs[app] = wx.Panel(self.database_results, -1,
-                                      style=wx.TAB_TRAVERSAL)
+            self.tabs[app] = wx.Panel(self.database_results, -1)
             self.charts[app] = wx.StaticBitmap(self.tabs[app], -1)
             self.charts[app].Hide()
-            self.grids[app] = gridlib.Grid(self.tabs[app], -1, size=(1, 1), name=app)
+            self.grids[app] = gridlib.Grid(self.tabs[app], -1, size=(1, 1),
+                                           name=app)
             self.grids[app].SetTable(LinkTable(app), True)
+        '''
             
         # Menu
         self.menu = Menu()
@@ -51,7 +56,7 @@ class MainFrame(wx.Frame):
     def __set_properties(self):
         self.SetTitle("IPRStats")
         self.SetSize((740, 600))
-
+        '''
         for app in self.apps:
             self.charts[app].SetSize((1,1))
             self.grids[app].SetRowLabelSize(0)
@@ -59,24 +64,93 @@ class MainFrame(wx.Frame):
             self.grids[app].SetColSize(1,150)
             self.grids[app].SetColSize(2,280)
             self.tabs[app].SetBackgroundColour('white')
+        '''
 
     def __do_layout(self):
         main_sizer = wx.FlexGridSizer(1, 1, 0, 0)
+        '''
         for app in self.apps:
             sizer = wx.FlexGridSizer(2, 1, 0, 0)
             sizer.Add(self.charts[app], 0, wx.ALIGN_CENTER_HORIZONTAL, 0)
-            sizer.Add(self.grids[app], 1, wx.EXPAND|wx.ALIGN_CENTER_HORIZONTAL, 0)
+            sizer.Add(self.grids[app], 1,
+                      wx.EXPAND|wx.ALIGN_CENTER_HORIZONTAL, 0)
             self.tabs[app].SetSizer(sizer)
             self.database_results.AddPage(self.tabs[app], app)
             sizer.AddGrowableRow(1)
             sizer.AddGrowableCol(0)
+        '''
         main_sizer.AddGrowableRow(0)
         main_sizer.AddGrowableCol(0)
-        main_sizer.Add(self.database_results, 0, wx.EXPAND, 0)
+        main_sizer.Add(self.tabbook, 0, wx.ALL|wx.EXPAND, 0)
         self.SetSizer(main_sizer)
         self.Layout()
         self.SetSize((840, 600))
 
+class TabPanel(wx.Panel):
+    """Custom wx.Panel containing a chart and table.
+    """
+    
+    def __init__(self, parent, app):
+        """Initialize with a parent (Listbook) object and its
+           specified app.
+        """
+        wx.Panel.__init__(self, parent, -1)
+        
+        self.app = app
+        self.chart = wx.StaticBitmap(self, -1)
+        self.chart.Hide()
+        self.grid = gridlib.Grid(self, -1, size=(1, 1), name=app)
+        self.grid.SetTable(LinkTable(app), True)
+        
+        self.__set_properties()
+        self.__do_layout()
+    
+    def __set_properties(self):
+        self.SetBackgroundColour('white')
+        self.chart.SetSize((1,1))
+        self.grid.SetRowLabelSize(0)
+        self.grid.SetColSize(0,250)
+        self.grid.SetColSize(1,150)
+        self.grid.SetColSize(2,280)
+    
+    def __do_layout(self):
+        sizer = wx.FlexGridSizer(2, 1, 0, 0)
+        sizer.Add(self.chart, 0, wx.ALIGN_CENTER_HORIZONTAL, 0)
+        sizer.Add(self.grid, 1, wx.EXPAND|wx.ALIGN_CENTER_HORIZONTAL, 0)
+        sizer.AddGrowableRow(1)
+        sizer.AddGrowableCol(0)
+        self.SetSizer(sizer)
+        self.Layout()
+
+class TabBook(wx.Listbook):
+    """"""
+    def __init__(self, parent, apps):
+        wx.Listbook.__init__(self, parent, -1, style=wx.BK_LEFT)
+        
+        self.tabs = {}
+        for app in apps:
+            self.tabs[app] = TabPanel(self, app)
+            self.AddPage(self.tabs[app], app)
+            
+    def UpdateTabs(self, iprstat=None):
+        """Assuming the values have changed, update each tab
+           to display the new data.
+        """
+        if not iprstat:
+            return
+        
+        for app, tab in self.tabs.iteritems():
+            # TODO: update chart as well
+            bitmap = iprstat.chart[app].GetChart()
+            if bitmap:
+                tab.chart.SetBitmap(bitmap)
+                tab.chart.Show()
+            else:
+                tab.chart.Hide()
+
+            tab.grid.GetTable().Update(iprstat.cache)
+            tab.grid.AutoSizeColumns()
+            tab.grid.Fit()
 
 class Menu(wx.MenuBar):
     """Main menu bar object used by iprstats.py"""
@@ -282,7 +356,6 @@ class PropertiesDlg(wx.Dialog):
         self.GDBDBLbl = wx.StaticText(self.DBSettingsTab,-1,"Database: ")
         
         # Apply, Cancel, OK buttons
-        self.ApplyBtn = wx.Button(self, wx.ID_APPLY, "")
         self.CancelBtn = wx.Button(self, wx.ID_CANCEL, "")
         self.OKBtn = wx.Button(self, wx.ID_OK, "")
         self.PopulateDialog()
@@ -340,7 +413,7 @@ class PropertiesDlg(wx.Dialog):
            correct sizer and fix any formatting issues.
         """
         MainSzr = wx.FlexGridSizer(2, 1, 0, 0)
-        BtnSzr = wx.FlexGridSizer(1, 3, 0, 0)
+        BtnSzr = wx.FlexGridSizer(1, 2, 0, 0)
         DBSzr = wx.BoxSizer(wx.HORIZONTAL)
         GDBSzr = wx.StaticBoxSizer(self.GDBSzrBox, wx.HORIZONTAL)
         GDBOptionsSzr = wx.FlexGridSizer(6, 2, 3, 0)
@@ -434,7 +507,6 @@ class PropertiesDlg(wx.Dialog):
         self.Tabs.AddPage(self.DBSettingsTab, "Database settings")
         MainSzr.Add(self.Tabs, 1, wx.EXPAND, 0)
         
-        BtnSzr.Add(self.ApplyBtn, 0, wx.ADJUST_MINSIZE, 0)
         BtnSzr.Add(self.CancelBtn, 0, wx.ADJUST_MINSIZE, 0)
         BtnSzr.Add(self.OKBtn, 0, wx.ADJUST_MINSIZE, 0)
         MainSzr.Add(BtnSzr, 1, wx.ALIGN_RIGHT, 0)
@@ -577,23 +649,25 @@ class PropertiesDlg(wx.Dialog):
         self.settings.setconfigparser()
 
 
+import platform
+
 class About(wx.AboutDialogInfo):
     """Defines information to display in the "about" dialog"""
     
     def __init__(self, *args, **kwds):
         wx.AboutDialogInfo.__init__(self, *args, **kwds)
         self.SetName('IPRStats')
-        self.SetVersion('0.3')
+        self.SetVersion('0.4')
         self.SetDescription('A statistical tool that eases ' +\
                 'the analysis of InterProScan results by generating ' +\
                 'charts and tables with links to additional information.')
-        # TODO: Mac/Windows don't natively support urls or license text;
-        #       we should remove them on a OS specific basis
         self.AddDeveloper('David Vincent')
         self.AddDeveloper('Ryan Kelly')
         self.AddDeveloper('Iddo Friedberg')
-        self.SetWebSite('http://github.com/devrkel/IPRStats')
-        self.SetLicence("""Academic Free License ("AFL") v. 3.0
+        # NOTE: Mac/Windows don't natively support urls or license text;
+        if platform.system == 'Linux':
+            self.SetWebSite('http://github.com/devrkel/IPRStats')
+            self.SetLicence("""Academic Free License ("AFL") v. 3.0
 
 This Academic Free License (the "License") applies to any original work
 of authorship (the "Original Work") whose owner (the "Licensor") has

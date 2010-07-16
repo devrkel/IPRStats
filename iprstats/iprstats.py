@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import wxversion
-wxversion.select('2.8')
+wxversion.ensureMinimal('2.8')
 import wx.grid
 import os
 import sys
@@ -95,7 +95,7 @@ class IPRStats:
             # the GUI with it. Update the progress bar dialog.
             dialog.Update(2, "Retrieving parsed data...")
             self.iprstat = core.IPRStatsData(self.settings)
-            self.PopulateGUI()
+            self.mainframe.tabbook.UpdateTabs(self.iprstat)
             dialog.Update(3, "Done!")
             dialog.Destroy()
             
@@ -122,7 +122,7 @@ class IPRStats:
             if session:
                 self.settings.newsession(session)
                 self.iprstat = core.IPRStatsData(self.settings)
-                self.PopulateGUI()
+                self.mainframe.tabbook.UpdateTabs(self.iprstat)
                 self.EnableExportOptions()
             else:
                 print 'Error opening session.'
@@ -199,36 +199,13 @@ class IPRStats:
                             self.settings)
         if dlg.ShowModal() == wx.ID_OK:
             dlg.SaveProperties()
-            for grid in self.mainframe.grids.values():
-                try: grid.GetTable().Update()
-                except AttributeError: pass
+            self.mainframe.tabbook.UpdateTabs(self.iprstat)
                 
         dlg.Destroy()
 
     def OnAbout(self, event):
         """Displays an about box"""
         wx.AboutBox(self.mainframe.aboutinfo)
-    
-    def PopulateGUI(self):
-        """Populates frame's form elements with information pulled from the
-        XML file
-        
-        Creates an IPRStatsData object to contain the data and then
-        populates the necessary grid and chart elements using the
-        IPRStatsData object.
-        """
-        for app in self.settings.getapps():
-            
-            bitmap = self.iprstat.chart[app].GetChart()
-            if bitmap:
-                self.mainframe.charts[app].SetBitmap(bitmap)
-                self.mainframe.charts[app].Show()
-            else:
-                self.mainframe.charts[app].Hide()
-
-            self.mainframe.grids[app].GetTable().Update(self.iprstat.cache)
-            self.mainframe.grids[app].AutoSizeColumns()
-            self.mainframe.tabs[app].Fit()
     
     def EnableExportOptions(self):
         """ Enables previously disabled export menu items.

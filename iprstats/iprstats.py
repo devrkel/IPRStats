@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 
-import wxversion
-wxversion.ensureMinimal('2.8')
-import wx.grid
+import wx
 import os
 import sys
 import shutil
@@ -37,8 +35,6 @@ class IPRStats:
         # Bind events to the menu and open grid links in browser
         self.mainframe.Bind(wx.EVT_MENU, self.OnOpen,
                             self.mainframe.menu.open)
-        self.mainframe.Bind(wx.EVT_MENU, self.OnOpenSession,
-                            self.mainframe.menu.open_session)
         self.mainframe.Bind(wx.EVT_MENU, self.OnSaveAs,
                             self.mainframe.menu.save_as)
         self.mainframe.Bind(wx.EVT_MENU, self.OnExportHTML,
@@ -55,79 +51,75 @@ class IPRStats:
                             self.OnCellLeftClick)
         
         app.SetTopWindow(self.mainframe)
-        self.mainframe.Show()
         app.MainLoop()
 
     def OnOpen(self, event):
         """ Open an XML file
         
         Launches a file-chooser dialog for the user to select the
-        InterProScan output XML file to be parsed.  Creates a working
-        session id and an IPRStatsData object containing the parsed
-        data.
+        InterProScan output XML file or IPRStats file to be
+        opened.  It then calls the corresponding function to open
+        it and refresh the GUI data.
         """
+        filetypes = ["XML (*.xml)|*.xml",
+                     "IPRStats File (*.ips)|*.ips",
+                     "View all files (*.*)|*.*"]
         dlg = wx.FileDialog(self.mainframe, "Choose a file",
                             self.settings.getexportdir(), "",
-                            "XML (*.xml)|*.xml|View all files (*.*)|*.*",
-                            wx.OPEN)
+                            "|".join(filetypes), wx.OPEN)
         if dlg.ShowModal() == wx.ID_OK:
             filename = dlg.GetFilename()
             self.settings.setexportdir(dlg.GetDirectory())
-            
-            # Create a random ID and make a session folder on disk
-            self.settings.newsession()
-            
-            # Pass the user-selected XML to the XML parser
             infile = os.path.join(self.settings.getexportdir(), filename)
-            parsethread = importers.ParseXMLFile(infile, self.settings)
             
-            # Create a progress bar dialog and update it while the
-            # XML file is still being parsed.
-            dialog = wx.ProgressDialog( 'Progress', 'Opening ' +\
-                                        filename +'...', maximum = 3 )
-            parsethread.start()
-            while parsethread.isAlive():
-                wx.Sleep(0.1)
-                dialog.Update(1, "Parsing XML file...")
-            parsethread.join()
-            
-            # Query the data parsed by the XML parser and populate
-            # the GUI with it. Update the progress bar dialog.
-            dialog.Update(2, "Retrieving parsed data...")
+            if infile[-4:] != '.ips':
+                self.OpenXMLFile(infile)
+            else:
+                self.OpenSession(infile)
+        dlg.Destroy()
+    
+    def OpenXMLFile(self, filename):
+        """Create a new session, parse the XML file, and retrieve
+        the results.
+        """
+        # Create a new session and pass the user-selected XML to the
+        # XML parser
+        self.settings.newsession()
+        parsethread = importers.ParseXMLFile(filename, self.settings)
+        
+        # Create a progress bar dialog and update it while the
+        # XML file is still being parsed.
+        dialog = wx.ProgressDialog('Progress',
+                            'Opening ' + os.path.basename(filename) + '...',
+                             maximum = 3 )
+        parsethread.start()
+        while parsethread.isAlive():
+            wx.Sleep(0.1)
+            dialog.Update(1, "Parsing XML file...")
+        parsethread.join()
+        
+        # Query the data parsed by the XML parser and populate
+        # the GUI with it. Update the progress bar dialog.
+        dialog.Update(2, "Retrieving parsed data...")
+        self.iprstat = core.IPRStatsData(self.settings)
+        self.mainframe.tabbook.UpdateTabs(self.iprstat)
+        dialog.Update(3, "Done!")
+        dialog.Destroy()
+    
+        self.EnableExportOptions()
+    
+    def OpenSession(self, filename):
+        """Create a session importer instance and refresh the data.
+        """
+        ips = importers.session(self.settings.getsessionsdir())
+        session = ips.open(filename)
+        if session:
+            self.settings.newsession(session)
             self.iprstat = core.IPRStatsData(self.settings)
             self.mainframe.tabbook.UpdateTabs(self.iprstat)
-            dialog.Update(3, "Done!")
-            dialog.Destroy()
-            
             self.EnableExportOptions()
-            
-        dlg.Destroy()
-        
-    def OnOpenSession(self, event):
-        """Opens session previously saved by user
-        
-        A saved session .ips file is a .tar.bz2 compressed version of
-        a standard session folder.  Extracts data and populates GUI.
-        """
-        dlg = wx.FileDialog(self.mainframe, "Choose a file",
-                    self.settings.getexportdir(), "",
-                    "IPRStats File (*.ips)|*.ips|View all files (*.*)|*.*",
-                    wx.OPEN)
-        if dlg.ShowModal() == wx.ID_OK:
-            filename = dlg.GetFilename()
-            self.settings.setexportdir(dlg.GetDirectory())
-            path = os.path.join(self.settings.getexportdir(), filename)
-            ips = importers.session(self.settings.getsessionsdir())
-            session = ips.open(path)
-            if session:
-                self.settings.newsession(session)
-                self.iprstat = core.IPRStatsData(self.settings)
-                self.mainframe.tabbook.UpdateTabs(self.iprstat)
-                self.EnableExportOptions()
-            else:
-                print 'Error opening session.'
-            
-        dlg.Destroy()
+        else:
+            print 'Error opening session.'
     
     def OnSaveAs(self, event):
         """Saves the current session.

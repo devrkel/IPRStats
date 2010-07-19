@@ -1,4 +1,4 @@
-IPRStats version 0.1a
+IPRStats version 0.4
 June 2010
 Contributers: David Vincent, Ryan Kelly, Iddo Friedberg*
 Email: i.friedberg@muohio.edu
@@ -12,17 +12,12 @@ by generating charts and tables with links to additional information.
    
    Standalone requirements:
     + Python 2.6
-    + MySQL 5.1 and MySQLdb
     + wxPython
     
-   Server requirements:
-    + Python 2.6
-    + MySQL 5.1 and MySQLdb
-    + Apache2
-    
-   Optional Python modules:
-    + SQLite3
-    + Matplotlib and Numpy
+   Optional requirements:
+    + Matplotlib and Numpy (Python modules)
+    + MySQLdb (Python module)
+    + MySQL 5.1
 
 
 2. INSTALLATION
@@ -34,8 +29,8 @@ by generating charts and tables with links to additional information.
 3. NOTES
 -----------------------------
    
-   IPRStats is currently in alpha.  It is very buggy and lacks
-   documentation. Email us for additional help.
+   IPRStats is currently in alpha.  It has several bugs and lacks
+   complete documentation. Email us for additional help.
 
 
 4. USAGE LICENSE

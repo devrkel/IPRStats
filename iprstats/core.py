@@ -709,16 +709,16 @@ class Settings:
            and deletes the old session files if possible.
            Returns: the new session id (str)
         '''
+        
         if session_id:
             self.session = session_id
         else:
+            try: # Bad hack... fix this...
+                shutil.rmtree(self.getsessiondir())
+            except:
+                pass
             chars = string.letters + string.digits
             self.session = ''.join([choice(chars) for _ in xrange(8)])
-        
-        try:
-            shutil.rmtree(self.getsessiondir())
-        except:
-            pass
         
         self.setsessiondir(self.session)
         

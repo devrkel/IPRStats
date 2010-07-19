@@ -1,98 +1,92 @@
-GENERAL INSTALLATION
+-----------------------------
+|       INSTALLATION        |
 -----------------------------
 
-   General installation is required for installing both the IPRStats server
-   and standalone applications.  These instructions will guide you through
-   setting up a MySQL database, extracting the source code, and configuring
-   the application. They are also available online at 
-   http://wiki.github.com/devrkel/IPRStats/
+In order to make installation easier, we have developed several binary 
+installers for IPRStats.  By going to http://github.com/devrkel/IPRStats and 
+clicking on “Downloads”, you can find the list of the most current installers 
+for your system.  We currently have Windows, Mac, and Ubuntu installers 
+(tested on Vista, Snow Leopard, and Lucid Lynx respectively).
 
-   WINDOWS
-   --------------------------
+WINDOWS
+-----------------------------
 
-   1. Required software
-   
-      There are several dependencies you must install before 
-      
-      
-      1.1 MySQL
-      
-          If you do not have 
-     
-      If you do not have administrative access to a MySQL database,
-      download and setup the MySQL Community Server from
-      http://www.mysql.com/downloads/
-      
-      From the terminal, type "mysql -u<user> -p" where <user> is a
-      user with database creation rights. When prompted, type that
-      user's password.  This will bring up the interactive MySQL
-      prompt.
-      
-      At the mysql prompt, type "create database <database_name>"
-      where <database_name> is the name of the database that
-      will contain the IPRStats data.
-      
-   2. Getting the source code
-      
-      Now get a copy of the project's source code from
-      http://github.com/devrkel/IPRStats.  This can be accomplished
-      in two ways:
-      
-      a. Git
-         
-         You download an install the latest version of Git from
-         http://git-scm.com/download
-         
-         From the terminal, navigate to the directory you where
-         you want to install IPRStats.
-         
-         Download a copy of the source code and change into the
-         source folder by typing:
-         
-           git clone git://github.com/devrkel/IPRStats.git
-           cd IPRStats/src/
-         
-      b. ZIP or TAR
-         
-         From http://github.com/devrkel/IPRStats click on the button
-         labeled "Download Source".
-          
-         Save the chosen file and extract it to the directory you
-         want to install IPRStats.
-          
-         Navigate to the extracted directory and open the "src"
-         folder.
-          
-   3. Configuring IPRStats
-      
-      In the "src" folder, open the configuration file "iprstats.cfg"
-      in a text editor.
-      
-      Under the [local db] section, edit the host, user, passwd, and
-      db settings to allow IPRStats write access to the MySQL
-      database specified by "db".
-      
-      Optional: If you have a local mirror of the GO terms database,
-      you can modify those options here and set "go_lookup" to "true".
-      If not using a local mirror, setting "go_lookup" to "true" may
-      result in a significant slow down.
-      
-      Save "ipsstats.cfg".
-       
-Running as a standalone application
+Before installing IPRStats, you must have several dependencies installed.  
+Installation of these dependencies is very straightforward:
+    + Python 2.6 available at http://www.python.org/download/releases/2.6.5/.
+    + wxPython 2.8 runtime (unicode) available at
+      http://www.wxpython.org/download.php
 
-   Assuming you correctly set-up the MySQL database and configured
-   IPRStats accordingly, the IPRStats standalone should work correctly.
+Once you have these two dependencies installed, you can download and install 
+IPRStats.  Navigate to http://github.com/devrkel/IPRStats and click the 
+“Downloads” link.  Choose the IPRStats-0.4.win32 installer and run it.  This 
+will install IPRStats and add a shortcut to your Windows start menu.
 
-   1. From a terminal, navigate to "IPRStats/src/" and type
-      "python standalone.py". The application should open up.
-   
-   2. From File choose Open... and select the InterProStats output
-      file you wish to view.
+MAC OS X
+-----------------------------
 
-   3. Depending on the size of the file, you may have to wait several
-      minutes before you can view the IPRStats generated information.
+The Mac OS X application can be downloaded from 
+http://github.com/devrkel/IPRStats by clicking the “Downloads” link and 
+downloading the Mac application.  IPRStats comes packaged in a .dmg disk 
+image.  You must open the image and drag the application to your Applications 
+folder (or anywhere on your computer) before double clicking it.
 
-Running as a server application
+UBUNTU / DEBIAN
+-----------------------------
 
-   // TODO
+A debian installer is provided at http://github.com/devrkel/IPRStats in the 
+download section.  Download the installer and double click it to open aptitude
+which will download and install any missing dependencies you may have.  The 
+installer will add a menu item under the Science section in Gnome.
+
+OTHER
+-----------------------------
+
+It should be possible to run IPRStats on any *nix, Solaris, or BSD system on 
+which you can install its dependencies.  These dependencies are:
+    + Python 2.6
+    + wxPython 2.8
+
+You must also have an Internet connection if you wish to download charts.  
+After the dependencies are installed, download the source code from 
+http://github.com/devrkel/IPRStats as either a zip or tarfile by clicking 
+“Download Source.”  Extract the contents to a location on your computer and 
+run “iprstats.py” inside the “iprstats” folder. 
+
+OPTIONAL
+-----------------------------
+
+You can optionally install the following Python modules for additional chart 
+types:
+    + NumPy and Matplotlib available at
+      http://sourceforge.net/projects/numpy/files/ and
+      http://sourceforge.net/projects/matplotlib/files/matplotlib/
+      respectively.
+
+USING MYSQL
+-----------------------------
+
+It is highly recommended that you use MySQL for large XML files. By default 
+IPRStats uses SQLite as the database to store and query data extracted from a 
+given InterProScan XML file.  IPRStats gives you MySQL connection options in 
+its properties dialog, however, you must first install the Python module 
+MySQLdb.
+
+On Windows, you must compile MySQLdb from source, which requires several 
+development libraries.  System engineer Yun Fu has written a very good article
+on installing MySQLdb on Windows which can be found at
+http://www.fuyun.org/2009/12/install-mysql-for-python-on-windows/
+
+On Mac, you must also compile MySQLdb from source.  It may be necessary to 
+install Xcode from your OSX installation disk to have Apple's gcc installed. 
+Mangoorange has written very clear instructions for doing so at
+http://www.mangoorange.com/2008/08/01/installing-python-mysqldb-122-on-mac-os-x/
+
+Many Linux distributions have MySQLdb available through their package 
+management systems.  Using aptitude, you can install it via the command prompt
+by typing: sudo apt-get install python-mysqldb
+
+Note that if you want to install a local MySQL database, you will need to 
+install the MySQL server.  The MySQL Community server can be downloaded at 
+http://www.mysql.com/downloads/mysql/.  IPRStats has been tested with version 
+5.1 but should work with other versions.

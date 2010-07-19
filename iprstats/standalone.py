@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 
-import wxversion
-wxversion.select('2.8')
 import wx
 import wx.grid as gridlib
 import sys
@@ -24,24 +22,6 @@ class MainFrame(wx.Frame):
         
         self.apps = apps
         self.tabbook = TabBook(self, self.apps)
-        
-        '''
-        self.database_results = wx.Listbook(self, -1, style=wx.BK_LEFT)
-        
-        self.apps = apps
-        self.tabs = {}
-        self.charts = {}
-        self.grids = {}
-
-        # Create a tab, image, and grid for each app
-        for app in self.apps:
-            self.tabs[app] = wx.Panel(self.database_results, -1)
-            self.charts[app] = wx.StaticBitmap(self.tabs[app], -1)
-            self.charts[app].Hide()
-            self.grids[app] = gridlib.Grid(self.tabs[app], -1, size=(1, 1),
-                                           name=app)
-            self.grids[app].SetTable(LinkTable(app), True)
-        '''
             
         # Menu
         self.menu = Menu()
@@ -52,33 +32,15 @@ class MainFrame(wx.Frame):
 
         self.__set_properties()
         self.__do_layout()
+        
+        self.Show()
 
     def __set_properties(self):
         self.SetTitle("IPRStats")
         self.SetSize((740, 600))
-        '''
-        for app in self.apps:
-            self.charts[app].SetSize((1,1))
-            self.grids[app].SetRowLabelSize(0)
-            self.grids[app].SetColSize(0,250)
-            self.grids[app].SetColSize(1,150)
-            self.grids[app].SetColSize(2,280)
-            self.tabs[app].SetBackgroundColour('white')
-        '''
 
     def __do_layout(self):
         main_sizer = wx.FlexGridSizer(1, 1, 0, 0)
-        '''
-        for app in self.apps:
-            sizer = wx.FlexGridSizer(2, 1, 0, 0)
-            sizer.Add(self.charts[app], 0, wx.ALIGN_CENTER_HORIZONTAL, 0)
-            sizer.Add(self.grids[app], 1,
-                      wx.EXPAND|wx.ALIGN_CENTER_HORIZONTAL, 0)
-            self.tabs[app].SetSizer(sizer)
-            self.database_results.AddPage(self.tabs[app], app)
-            sizer.AddGrowableRow(1)
-            sizer.AddGrowableCol(0)
-        '''
         main_sizer.AddGrowableRow(0)
         main_sizer.AddGrowableCol(0)
         main_sizer.Add(self.tabbook, 0, wx.ALL|wx.EXPAND, 0)
@@ -123,8 +85,12 @@ class TabPanel(wx.Panel):
         self.Layout()
 
 class TabBook(wx.Listbook):
-    """"""
+    """Object for containing all the tabs and displaying them.
+    """
     def __init__(self, parent, apps):
+        """Parent is the main frame (wx.Frame) and apps is a list
+           of the available apps/tabs.
+        """
         wx.Listbook.__init__(self, parent, -1, style=wx.BK_LEFT)
         
         self.tabs = {}
@@ -134,13 +100,12 @@ class TabBook(wx.Listbook):
             
     def UpdateTabs(self, iprstat=None):
         """Assuming the values have changed, update each tab
-           to display the new data.
+           to display the new data. Return if no new data.
         """
         if not iprstat:
             return
         
         for app, tab in self.tabs.iteritems():
-            # TODO: update chart as well
             bitmap = iprstat.chart[app].GetChart()
             if bitmap:
                 tab.chart.SetBitmap(bitmap)
@@ -162,8 +127,6 @@ class Menu(wx.MenuBar):
         self.file = wx.Menu()
         self.open = wx.MenuItem(self.file, wx.ID_OPEN,
                                      "&Open...", "", wx.ITEM_NORMAL)
-        self.open_session = wx.MenuItem(self.file, wx.NewId(),
-                                     "Open session...", "", wx.ITEM_NORMAL)
         self.save_as = wx.MenuItem(self.file, wx.ID_SAVEAS,
                                      "Save as...", "", wx.ITEM_NORMAL)
         self.export_html = wx.MenuItem(self.file, wx.NewId(),
@@ -176,7 +139,6 @@ class Menu(wx.MenuBar):
                                     "&Quit","", wx.ITEM_NORMAL)
         
         self.file.AppendItem(self.open)
-        self.file.AppendItem(self.open_session)
         self.file.AppendItem(self.save_as)
         self.file.AppendItem(self.export_html)
         self.file.AppendItem(self.export_xls)
@@ -328,7 +290,8 @@ class PropertiesDlg(wx.Dialog):
         # General settings labels
         self.GeneralTab = wx.Panel(self.Tabs, -1)
         self.ChartTypeLbl = wx.StaticText(self.GeneralTab, -1, "Chart type: ")
-        self.ChartGenLbl = wx.StaticText(self.GeneralTab, -1, "Chart generator: ")
+        self.ChartGenLbl = wx.StaticText(self.GeneralTab, -1,
+                                         "Chart generator: ")
         self.MaxChartLbl = wx.StaticText(self.GeneralTab, -1,
                                          "Max chart results: ")
         self.MaxTableLbl = wx.StaticText(self.GeneralTab, -1,
@@ -665,7 +628,7 @@ class About(wx.AboutDialogInfo):
         self.AddDeveloper('Ryan Kelly')
         self.AddDeveloper('Iddo Friedberg')
         # NOTE: Mac/Windows don't natively support urls or license text;
-        if platform.system == 'Linux':
+        if platform.system() == 'Linux':
             self.SetWebSite('http://github.com/devrkel/IPRStats')
             self.SetLicence("""Academic Free License ("AFL") v. 3.0
 

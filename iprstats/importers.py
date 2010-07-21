@@ -240,7 +240,7 @@ class ParseXMLFile(Thread):
 
 import tarfile
 
-class session:
+class ips:
     '''Opens a session file (.ips) by extracting it as
        a tar.bz2 into the sessions folder and populating
        the GUI elements.

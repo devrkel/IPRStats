@@ -1,0 +1,3 @@
+include iprstats/data/*.*
+include scripts/iprs.pyw
+include scripts/iprstats_postinstall.py

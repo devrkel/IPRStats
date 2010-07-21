@@ -111,8 +111,8 @@ class IPRStats:
     def OpenSession(self, filename):
         """Create a session importer instance and refresh the data.
         """
-        ips = importers.session(self.settings.getsessionsdir())
-        session = ips.open(filename)
+        importips = importers.ips(self.settings.getsessionsdir())
+        session = importips.open(filename)
         if session:
             self.settings.newsession(session)
             self.iprstat = core.IPRStatsData(self.settings)

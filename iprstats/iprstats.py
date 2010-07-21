@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+import wxversion
+wxversion.select('2.8')
 import wx
 import os
 import sys

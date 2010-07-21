@@ -1,0 +1,626 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>iprstats.standalone.LinkTable</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="iprstats-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+      <th class="navbar" width="100%"></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="iprstats-module.html">Package&nbsp;iprstats</a> ::
+        <a href="iprstats.standalone-module.html">Module&nbsp;standalone</a> ::
+        Class&nbsp;LinkTable
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options">[<a href="javascript:void(0);" class="privatelink"
+    onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="iprstats.standalone.LinkTable-class.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS DESCRIPTION ==================== -->
+<h1 class="epydoc">Class LinkTable</h1><p class="nomargin-top"><span class="codelink"><a href="iprstats.standalone-pysrc.html#LinkTable">source&nbsp;code</a></span></p>
+<pre class="base-tree">
+       object --+            
+                |            
+  wx._core.Object --+        
+                    |        
+wx.grid.GridTableBase --+    
+                        |    
+  wx.grid.PyGridTableBase --+
+                            |
+                           <strong class="uidshort">LinkTable</strong>
+</pre>
+
+<hr />
+<p>Class underlying wx.grid.Grid that stores only the data from visible 
+  cells in memory at a given time</p>
+
+<!-- ==================== INSTANCE METHODS ==================== -->
+<a name="section-InstanceMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Instance Methods</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-InstanceMethods"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">PyGridTableBase</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="iprstats.standalone.LinkTable-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">app</span>,
+        <span class="summary-sig-arg">data</span>=<span class="summary-sig-default">None</span>)</span><br />
+      Initialize the table with a specified app and an initialized cache 
+      object</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="iprstats.standalone-pysrc.html#LinkTable.__init__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="iprstats.standalone.LinkTable-class.html#GetAttr" class="summary-sig-name">GetAttr</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">row</span>,
+        <span class="summary-sig-arg">col</span>,
+        <span class="summary-sig-arg">kind</span>)</span><br />
+      Return styling attributes for a cell</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="iprstats.standalone-pysrc.html#LinkTable.GetAttr">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="iprstats.standalone.LinkTable-class.html#GetColLabelValue" class="summary-sig-name">GetColLabelValue</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">col</span>)</span><br />
+      Define column labels</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="iprstats.standalone-pysrc.html#LinkTable.GetColLabelValue">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">int</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="iprstats.standalone.LinkTable-class.html#GetNumberRows" class="summary-sig-name">GetNumberRows</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Return the current length of the table</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="iprstats.standalone-pysrc.html#LinkTable.GetNumberRows">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">int</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="iprstats.standalone.LinkTable-class.html#GetNumberCols" class="summary-sig-name">GetNumberCols</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Return the width of the table</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="iprstats.standalone-pysrc.html#LinkTable.GetNumberCols">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="iprstats.standalone.LinkTable-class.html#IsEmptyCell" class="summary-sig-name">IsEmptyCell</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">row</span>,
+        <span class="summary-sig-arg">col</span>)</span><br />
+      No visible cells should be empty</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="iprstats.standalone-pysrc.html#LinkTable.IsEmptyCell">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="iprstats.standalone.LinkTable-class.html#GetValue" class="summary-sig-name">GetValue</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">row</span>,
+        <span class="summary-sig-arg">col</span>)</span><br />
+      Retrieve cell value from the cache object</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="iprstats.standalone-pysrc.html#LinkTable.GetValue">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="iprstats.standalone.LinkTable-class.html#SetValue" class="summary-sig-name">SetValue</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">row</span>,
+        <span class="summary-sig-arg">col</span>,
+        <span class="summary-sig-arg">value</span>)</span><br />
+      Cell editing is disabled</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="iprstats.standalone-pysrc.html#LinkTable.SetValue">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="Update"></a><span class="summary-sig-name">Update</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">data</span>=<span class="summary-sig-default">None</span>)</span><br />
+      Update the table length based on the underlying cache object (for if 
+      the max_tables_result value is changed).</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="iprstats.standalone-pysrc.html#LinkTable.Update">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code>wx.grid.PyGridTableBase</code></b>:
+      <code>Destroy</code>,
+      <code>__repr__</code>,
+      <code>base_AppendCols</code>,
+      <code>base_AppendRows</code>,
+      <code>base_CanGetValueAs</code>,
+      <code>base_CanHaveAttributes</code>,
+      <code>base_CanSetValueAs</code>,
+      <code>base_Clear</code>,
+      <code>base_DeleteCols</code>,
+      <code>base_DeleteRows</code>,
+      <code>base_GetAttr</code>,
+      <code>base_GetColLabelValue</code>,
+      <code>base_GetRowLabelValue</code>,
+      <code>base_GetTypeName</code>,
+      <code>base_InsertCols</code>,
+      <code>base_InsertRows</code>,
+      <code>base_SetAttr</code>,
+      <code>base_SetColAttr</code>,
+      <code>base_SetColLabelValue</code>,
+      <code>base_SetRowAttr</code>,
+      <code>base_SetRowLabelValue</code>
+      </p>
+    <div class="private">    <p class="indent-wrapped-lines"><b>Inherited from <code>wx.grid.PyGridTableBase</code></b> (private):
+      <code>_setCallbackInfo</code>
+      </p></div>
+    <p class="indent-wrapped-lines"><b>Inherited from <code>wx.grid.GridTableBase</code></b>:
+      <code>AppendCols</code>,
+      <code>AppendRows</code>,
+      <code>CanGetValueAs</code>,
+      <code>CanHaveAttributes</code>,
+      <code>CanSetValueAs</code>,
+      <code>Clear</code>,
+      <code>DeleteCols</code>,
+      <code>DeleteRows</code>,
+      <code>GetAttrProvider</code>,
+      <code>GetRowLabelValue</code>,
+      <code>GetTypeName</code>,
+      <code>GetValueAsBool</code>,
+      <code>GetValueAsDouble</code>,
+      <code>GetValueAsLong</code>,
+      <code>GetView</code>,
+      <code>InsertCols</code>,
+      <code>InsertRows</code>,
+      <code>SetAttr</code>,
+      <code>SetAttrProvider</code>,
+      <code>SetColAttr</code>,
+      <code>SetColLabelValue</code>,
+      <code>SetRowAttr</code>,
+      <code>SetRowLabelValue</code>,
+      <code>SetValueAsBool</code>,
+      <code>SetValueAsDouble</code>,
+      <code>SetValueAsLong</code>,
+      <code>SetView</code>
+      </p>
+    <div class="private">    <p class="indent-wrapped-lines"><b>Inherited from <code>wx.grid.GridTableBase</code></b> (private):
+      <code>_setOORInfo</code>
+      </p></div>
+    <p class="indent-wrapped-lines"><b>Inherited from <code>wx._core.Object</code></b>:
+      <code>GetClassName</code>
+      </p>
+    <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
+      <code>__delattr__</code>,
+      <code>__format__</code>,
+      <code>__getattribute__</code>,
+      <code>__hash__</code>,
+      <code>__new__</code>,
+      <code>__reduce__</code>,
+      <code>__reduce_ex__</code>,
+      <code>__setattr__</code>,
+      <code>__sizeof__</code>,
+      <code>__str__</code>,
+      <code>__subclasshook__</code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== PROPERTIES ==================== -->
+<a name="section-Properties"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Properties</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-Properties"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+  <tr>
+    <td colspan="2" class="summary">
+    <p class="indent-wrapped-lines"><b>Inherited from <code>object</code></b>:
+      <code>__class__</code>
+      </p>
+    </td>
+  </tr>
+</table>
+<!-- ==================== METHOD DETAILS ==================== -->
+<a name="section-MethodDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Method Details</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-MethodDetails"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+</table>
+<a name="__init__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__init__</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">app</span>,
+        <span class="sig-arg">data</span>=<span class="sig-default">None</span>)</span>
+    <br /><em class="fname">(Constructor)</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="iprstats.standalone-pysrc.html#LinkTable.__init__">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Initialize the table with a specified app and an initialized cache 
+  object</p>
+  <dl class="fields">
+    <dt>Returns: PyGridTableBase</dt>
+    <dt>Overrides:
+        object.__init__
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="GetAttr"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">GetAttr</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">row</span>,
+        <span class="sig-arg">col</span>,
+        <span class="sig-arg">kind</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="iprstats.standalone-pysrc.html#LinkTable.GetAttr">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Return styling attributes for a cell</p>
+  <p>Makes columns 0 and 2 look like links if their value isn't None; make 
+  everything readonly</p>
+  <dl class="fields">
+    <dt>Overrides:
+        wx.grid.GridTableBase.GetAttr
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="GetColLabelValue"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">GetColLabelValue</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">col</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="iprstats.standalone-pysrc.html#LinkTable.GetColLabelValue">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Define column labels</p>
+  <dl class="fields">
+    <dt>Overrides:
+        wx.grid.GridTableBase.GetColLabelValue
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="GetNumberRows"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">GetNumberRows</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="iprstats.standalone-pysrc.html#LinkTable.GetNumberRows">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Return the current length of the table</p>
+  <dl class="fields">
+    <dt>Returns: int</dt>
+    <dt>Overrides:
+        wx.grid.GridTableBase.GetNumberRows
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="GetNumberCols"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">GetNumberCols</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="iprstats.standalone-pysrc.html#LinkTable.GetNumberCols">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Return the width of the table</p>
+  <dl class="fields">
+    <dt>Returns: int</dt>
+    <dt>Overrides:
+        wx.grid.GridTableBase.GetNumberCols
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="IsEmptyCell"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">IsEmptyCell</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">row</span>,
+        <span class="sig-arg">col</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="iprstats.standalone-pysrc.html#LinkTable.IsEmptyCell">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>No visible cells should be empty</p>
+  <dl class="fields">
+    <dt>Overrides:
+        wx.grid.GridTableBase.IsEmptyCell
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="GetValue"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">GetValue</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">row</span>,
+        <span class="sig-arg">col</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="iprstats.standalone-pysrc.html#LinkTable.GetValue">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Retrieve cell value from the cache object</p>
+  <dl class="fields">
+    <dt>Overrides:
+        wx.grid.GridTableBase.GetValue
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<a name="SetValue"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">SetValue</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">row</span>,
+        <span class="sig-arg">col</span>,
+        <span class="sig-arg">value</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="iprstats.standalone-pysrc.html#LinkTable.SetValue">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Cell editing is disabled</p>
+  <dl class="fields">
+    <dt>Overrides:
+        wx.grid.GridTableBase.SetValue
+    </dt>
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="iprstats-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+      <th class="navbar" width="100%"></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Wed Jul 21 11:36:55 2010
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

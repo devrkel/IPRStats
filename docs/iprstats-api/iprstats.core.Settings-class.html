@@ -1,0 +1,846 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>iprstats.core.Settings</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="iprstats-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+      <th class="navbar" width="100%"></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        <a href="iprstats-module.html">Package&nbsp;iprstats</a> ::
+        <a href="iprstats.core-module.html">Module&nbsp;core</a> ::
+        Class&nbsp;Settings
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options">[<a href="javascript:void(0);" class="privatelink"
+    onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="iprstats.core.Settings-class.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<!-- ==================== CLASS DESCRIPTION ==================== -->
+<h1 class="epydoc">Class Settings</h1><p class="nomargin-top"><span class="codelink"><a href="iprstats.core-pysrc.html#Settings">source&nbsp;code</a></span></p>
+<p>Class to centralize all the general IPRStats settings</p>
+
+<!-- ==================== INSTANCE METHODS ==================== -->
+<a name="section-InstanceMethods"></a>
+<table class="summary" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Instance Methods</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-InstanceMethods"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="iprstats.core.Settings-class.html#__init__" class="summary-sig-name">__init__</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">configpath</span>=<span class="summary-sig-default">None</span>,
+        <span class="summary-sig-arg">installed</span>=<span class="summary-sig-default">False</span>)</span><br />
+      Open the specified configuration path and initialize all the settings
+      variables.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="iprstats.core-pysrc.html#Settings.__init__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="__load_file_paths__"></a><span class="summary-sig-name">__load_file_paths__</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">installed</span>=<span class="summary-sig-default">False</span>,
+        <span class="summary-sig-arg">export_dir</span>=<span class="summary-sig-default">None</span>)</span><br />
+      Loads the default paths that IPRStats will used based on whether it's
+      installed (True) or running locally (False)</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="iprstats.core-pysrc.html#Settings.__load_file_paths__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="iprstats.core.Settings-class.html#__get_real_folder__" class="summary-sig-name">__get_real_folder__</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">path</span>)</span><br />
+      Tries to create the given path if it doesn't exist and defaults to 
+      the temp directory otherwise.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="iprstats.core-pysrc.html#Settings.__get_real_folder__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="iprstats.core.Settings-class.html#__open_config_file__" class="summary-sig-name">__open_config_file__</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">config_path</span>)</span><br />
+      Attempts to find the given config file.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="iprstats.core-pysrc.html#Settings.__open_config_file__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="__load_settings__"></a><span class="summary-sig-name">__load_settings__</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Read the opened config file (self.config) into settings variables.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="iprstats.core-pysrc.html#Settings.__load_settings__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="iprstats.core.Settings-class.html#__load_db_settings__" class="summary-sig-name">__load_db_settings__</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">section</span>)</span><br />
+      Load connections from a given section in the configuration.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="iprstats.core-pysrc.html#Settings.__load_db_settings__">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="iprstats.core.Settings-class.html#newsession" class="summary-sig-name">newsession</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">session_id</span>=<span class="summary-sig-default">None</span>)</span><br />
+      Create a new session with the provided session_id; creates a random 
+      session id if session_id is not provided and deletes the old session 
+      files if possible.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="iprstats.core-pysrc.html#Settings.newsession">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="gethomedir"></a><span class="summary-sig-name">gethomedir</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Returns: home directory (str) Default: current working directory or 
+      $HOME</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="iprstats.core-pysrc.html#Settings.gethomedir">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="getdatadir"></a><span class="summary-sig-name">getdatadir</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Returns: data directory (str) Default: '.iprstats' or 
+      '$HOME/.iprstats'</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="iprstats.core-pysrc.html#Settings.getdatadir">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="iprstats.core.Settings-class.html#getsessiondir" class="summary-sig-name">getsessiondir</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Returns: current session directory (str)...</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="iprstats.core-pysrc.html#Settings.getsessiondir">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="getsessionsdir"></a><span class="summary-sig-name">getsessionsdir</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Returns: sessions directory (str) Default: '.iprstats/session' or 
+      '$HOME/.iprstats/session'</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="iprstats.core-pysrc.html#Settings.getsessionsdir">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="getexportdir"></a><span class="summary-sig-name">getexportdir</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Returns: current export directory (str) Default: current working 
+      directory or $HOME</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="iprstats.core-pysrc.html#Settings.getexportdir">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="iprstats.core.Settings-class.html#getinstalldir" class="summary-sig-name">getinstalldir</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Returns: module install directory (str)...</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="iprstats.core-pysrc.html#Settings.getinstalldir">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="setexportdir"></a><span class="summary-sig-name">setexportdir</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">new_export_dir</span>)</span><br />
+      Sets the new export directory from opening a dialog</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="iprstats.core-pysrc.html#Settings.setexportdir">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="setsessiondir"></a><span class="summary-sig-name">setsessiondir</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">session_id</span>)</span><br />
+      Sets the session directory variable to point to the correct session 
+      directory and creates the folder if necessary</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="iprstats.core-pysrc.html#Settings.setsessiondir">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="iprstats.core.Settings-class.html#getconfigparser" class="summary-sig-name">getconfigparser</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Get the ConfigParser object.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="iprstats.core-pysrc.html#Settings.getconfigparser">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="iprstats.core.Settings-class.html#getsession" class="summary-sig-name">getsession</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Get the current session id.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="iprstats.core-pysrc.html#Settings.getsession">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="iprstats.core.Settings-class.html#getmaxtableresults" class="summary-sig-name">getmaxtableresults</a>(<span class="summary-sig-arg">self</span>)</span><br />
+      Get the user-specified maximum number of table results.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="iprstats.core-pysrc.html#Settings.getmaxtableresults">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="getchartsettings"></a><span class="summary-sig-name">getchartsettings</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Returns: current chart settings (ChartSettings)</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="iprstats.core-pysrc.html#Settings.getchartsettings">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="getapps"></a><span class="summary-sig-name">getapps</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Returns: list of supported apps (list of str)</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="iprstats.core-pysrc.html#Settings.getapps">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="usesqlite"></a><span class="summary-sig-name">usesqlite</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Returns: whether to use SQLite (bool)</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="iprstats.core-pysrc.html#Settings.usesqlite">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="usegolookup"></a><span class="summary-sig-name">usegolookup</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Returns: whether to use GO lookup (bool)</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="iprstats.core-pysrc.html#Settings.usegolookup">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="getlocaldb"></a><span class="summary-sig-name">getlocaldb</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Returns: local MySQL db connection details (DBSettings)</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="iprstats.core-pysrc.html#Settings.getlocaldb">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="getgodb"></a><span class="summary-sig-name">getgodb</span>(<span class="summary-sig-arg">self</span>)</span><br />
+      Returns: Gene Ontology MySQL db connection details (DBSettings)</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="iprstats.core-pysrc.html#Settings.getgodb">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a name="setgolookup"></a><span class="summary-sig-name">setgolookup</span>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">value</span>)</span><br />
+      Sets the GO lookup variable to the specified value</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="iprstats.core-pysrc.html#Settings.setgolookup">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+<tr>
+    <td width="15%" align="right" valign="top" class="summary">
+      <span class="summary-type">&nbsp;</span>
+    </td><td class="summary">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><span class="summary-sig"><a href="iprstats.core.Settings-class.html#setconfigparser" class="summary-sig-name">setconfigparser</a>(<span class="summary-sig-arg">self</span>,
+        <span class="summary-sig-arg">NewConfigParser</span>=<span class="summary-sig-default">None</span>)</span><br />
+      Sets a new ConfigParser object and reloads the configuration data.</td>
+          <td align="right" valign="top">
+            <span class="codelink"><a href="iprstats.core-pysrc.html#Settings.setconfigparser">source&nbsp;code</a></span>
+            
+          </td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+</table>
+<!-- ==================== METHOD DETAILS ==================== -->
+<a name="section-MethodDetails"></a>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr bgcolor="#70b0f0" class="table-header">
+  <td colspan="2" class="table-header">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr valign="top">
+        <td align="left"><span class="table-header">Method Details</span></td>
+        <td align="right" valign="top"
+         ><span class="options">[<a href="#section-MethodDetails"
+         class="privatelink" onclick="toggle_private();"
+         >hide private</a>]</span></td>
+      </tr>
+    </table>
+  </td>
+</tr>
+</table>
+<a name="__init__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__init__</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">configpath</span>=<span class="sig-default">None</span>,
+        <span class="sig-arg">installed</span>=<span class="sig-default">False</span>)</span>
+    <br /><em class="fname">(Constructor)</em>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="iprstats.core-pysrc.html#Settings.__init__">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Open the specified configuration path and initialize all the settings 
+  variables.</p>
+  <p>Default: it opens '.iprstats/iprstats.cfg' or 
+  '$HOME/.iprstats/iprstats.cfg'</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="__get_real_folder__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__get_real_folder__</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">path</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="iprstats.core-pysrc.html#Settings.__get_real_folder__">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Tries to create the given path if it doesn't exist and defaults to the
+  temp directory otherwise. Returns: folder path (str)</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="__open_config_file__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__open_config_file__</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">config_path</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="iprstats.core-pysrc.html#Settings.__open_config_file__">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Attempts to find the given config file.  If it can't, it attempts to 
+  copy it to the given location from a standard location.  If that fails, 
+  it raises an IOError. Returns: config file (ConfigParser)</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="__load_db_settings__"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">__load_db_settings__</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">section</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="iprstats.core-pysrc.html#Settings.__load_db_settings__">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Load connections from a given section in the configuration. Returns: 
+  dbsettings (DBSettings)</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="newsession"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">newsession</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">session_id</span>=<span class="sig-default">None</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="iprstats.core-pysrc.html#Settings.newsession">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Create a new session with the provided session_id; creates a random 
+  session id if session_id is not provided and deletes the old session 
+  files if possible. Returns: the new session id (str)</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="getsessiondir"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">getsessiondir</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="iprstats.core-pysrc.html#Settings.getsessiondir">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <pre class="literalblock">
+Returns: current session directory (str)
+Default: '.iprstats/sesssion/$SESSIONID' or
+         '$HOME/.iprstats/session/$SESSIONID'
+
+</pre>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="getinstalldir"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">getinstalldir</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="iprstats.core-pysrc.html#Settings.getinstalldir">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <pre class="literalblock">
+Returns: module install directory (str)
+Default: 'C:\PythonX.X\Lib\site-packages\iprstats' or
+         '/usr/share/pyshared/iprstats'
+
+</pre>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="getconfigparser"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">getconfigparser</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="iprstats.core-pysrc.html#Settings.getconfigparser">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Get the ConfigParser object. Returns: config (ConfigParser)</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="getsession"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">getsession</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="iprstats.core-pysrc.html#Settings.getsession">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Get the current session id. Returns: session id (str)</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="getmaxtableresults"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">getmaxtableresults</span>(<span class="sig-arg">self</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="iprstats.core-pysrc.html#Settings.getmaxtableresults">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Get the user-specified maximum number of table results. Returns: max 
+  table results (int)</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<a name="setconfigparser"></a>
+<div>
+<table class="details" border="1" cellpadding="3"
+       cellspacing="0" width="100%" bgcolor="white">
+<tr><td>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="top"><td>
+  <h3 class="epydoc"><span class="sig"><span class="sig-name">setconfigparser</span>(<span class="sig-arg">self</span>,
+        <span class="sig-arg">NewConfigParser</span>=<span class="sig-default">None</span>)</span>
+  </h3>
+  </td><td align="right" valign="top"
+    ><span class="codelink"><a href="iprstats.core-pysrc.html#Settings.setconfigparser">source&nbsp;code</a></span>&nbsp;
+    </td>
+  </tr></table>
+  
+  <p>Sets a new ConfigParser object and reloads the configuration data.  
+  Reloads the current ConfigParser if no arguments</p>
+  <dl class="fields">
+  </dl>
+</td></tr></table>
+</div>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+  <!-- Home link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="iprstats-module.html">Home</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+      <th class="navbar" width="100%"></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Wed Jul 21 11:36:55 2010
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

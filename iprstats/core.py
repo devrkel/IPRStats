@@ -75,7 +75,7 @@ class Cache:
         
         if not self.settings.usesqlite():
             try:
-                conn = self._get_mysql_connection(dbs)
+                conn = self.__get_mysql_conn__(dbs)
                 default2sqlite = False
                 
             except OperationalError:

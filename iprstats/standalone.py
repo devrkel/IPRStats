@@ -620,7 +620,7 @@ class About(wx.AboutDialogInfo):
     def __init__(self, *args, **kwds):
         wx.AboutDialogInfo.__init__(self, *args, **kwds)
         self.SetName('IPRStats')
-        self.SetVersion('0.4')
+        self.SetVersion('0.4.1')
         self.SetDescription('A statistical tool that eases ' +\
                 'the analysis of InterProScan results by generating ' +\
                 'charts and tables with links to additional information.')

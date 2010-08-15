@@ -10,7 +10,8 @@ SETUP_REQUIRES=[]
 if sys.argv[1] == 'py2app':
     import py2app
     OPTIONS['py2app'] = {'packages':['wx'], 'site_packages':True,
-                         'argv_emulation':True, 'iconfile':'IPRStats.icns'}
+        'argv_emulation':True, 'iconfile':'IPRStats.icns',
+        'frameworks':['/System/Library/Frameworks/Python.framework/Versions/Current/']}
     SETUP_REQUIRES.append('py2app')
 elif sys.argv[1] == 'bdist_wininst':
     SCRIPTS.append(os.path.join('scripts','iprstats_postinstall.py'))
@@ -29,7 +30,7 @@ setup(name='IPRStats',
       data_files=[("data",
                    glob.glob(os.path.join('iprstats', 'data', '*.*'))
                    )],
-      install_requires=["wxPython"],
+      install_requires=["wxPython>=2.8"],
       setup_requires=SETUP_REQUIRES,
       options=OPTIONS,
       scripts=SCRIPTS

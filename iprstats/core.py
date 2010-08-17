@@ -616,7 +616,7 @@ class Settings:
         
         if installed:
             if platform.system() == 'Windows':
-                self.installdir = os.path.join(sys.prefix, 'iprstats')
+                self.installdir = os.path.join(sys.prefix, 'data')
             else:
                 self.installdir = os.path.join(sys.prefix, 'share',
                                         'pyshared', 'iprstats', 'data')

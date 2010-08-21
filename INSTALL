@@ -90,3 +90,19 @@ Note that if you want to install a local MySQL database, you will need to
 install the MySQL server.  The MySQL Community server can be downloaded at 
 http://www.mysql.com/downloads/mysql/.  IPRStats has been tested with version 
 5.1 but should work with other versions.
+
+
+-----------------------------
+|         QUICK RUN         |
+-----------------------------
+
+After you install, a quick test run:
+
+1. Download l43967.xml from here:
+   http://github.com/downloads/devrkel/IPRStats/L43967.xml
+2. Run IPRStats
+3. File -> Open
+4. Choose L43967.xml
+5. Wait. Loading can take up to 2 minutes
+6. Once you see a table and pie chart, IPRStats is ready for you to browse the
+   functional content of Mycoplasma genitalium's genome

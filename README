@@ -25,15 +25,28 @@ by generating charts and tables with links to additional information.
 
    For help with installation and configuration, please see INSTALL.
 
+3. QUICK RUN
+-----------------------------
 
-3. NOTES
+   After you install, a quick test run:
+   1. Download L43967.xml from here:
+      http://github.com/downloads/devrkel/IPRStats/L43967.xml
+   2. Run IPRStats
+   3. File -> Open
+   4. Choose L43967.xml
+   5. Wait. Loading can take up to 2 minutes
+   6. Once you see a table and pie chart, IPRStats is ready for you to browse
+      the functional content of Mycoplasma genitalium's genome
+
+
+4. NOTES
 -----------------------------
    
    IPRStats is currently in alpha.  It has several bugs and lacks
    complete documentation. Email us for additional help.
 
 
-4. USAGE LICENSE
+5. USAGE LICENSE
 -----------------------------
 
    IPRStats is released under the Academic Free License ("AFL") v. 3.0

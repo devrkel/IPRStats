@@ -46,16 +46,16 @@ class Cache:
             'HAMAP'      :'http://www.expasy.org/unirule/%s',
             'PANTHER'    :'http://www.pantherdb.org/panther/family.do?' + 
                           'clsAccession=%s',
-            'PRINTS'     :'http://www.bioinf.manchester.ac.uk/cgi-bin/' + 
-                          'dbbrowser/PRINTS/DoPRINTS.pl?cmd_a=Display&' + 
-                          'qua_a=/Full&fun_a=Code&qst_a=%s',
+            'PRINTS'     :'http://www.bioinf.manchester.ac.uk/cgi-bin/' +
+                          'dbbrowser/PRINTS/DoPRINTS.pl?cmd_a=Display&' +
+                          'qua_a=none&fun_a=Text&qst_a=%s',
             'PRODOM'     :'http://prodom.prabi.fr/prodom/current/cgi-b' + 
                           'in/request.pl?question=DBEN&query=%s',
             'PRO'        :'http://expasy.org/cgi-bin/prosite-search-ac?%s',
             'SMART'      :'http://smart.embl-heidelberg.de/smart/do_ann' + 
                           'otation.pl?BLAST=DUMMY&DOMAIN=%s',
             'SUPERFAMILY':'http://supfam.cs.bris.ac.uk/SUPERFAMILY/cgi-' + 
-                          'bin/scop.cgi?sunid=%s',
+                          'bin/scop.cgi?ipid=%s',
             'TIGRFAMs'   :'http://cmr.jcvi.org/cgi-bin/CMR/HmmReport.cgi' + 
                           '?hmm_acc=%s',
             'GENE3D'     :'http://www.cathdb.info/gene3d/%s',

@@ -19,7 +19,7 @@ elif sys.argv[1] == 'bdist_wininst':
 
 setup(name='IPRStats',
       app=['iprstats/iprstats.py'],
-      version='0.4.1',
+      version='0.4.2',
       description='A statistical tool that eases the analysis of ' + \
                   'InterProScan results by generating charts and tables ' + \
                   'with links to additional information.',

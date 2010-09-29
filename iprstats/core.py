@@ -51,7 +51,7 @@ class Cache:
                           'qua_a=none&fun_a=Text&qst_a=%s',
             'PRODOM'     :'http://prodom.prabi.fr/prodom/current/cgi-b' + 
                           'in/request.pl?question=DBEN&query=%s',
-            'PRO'        :'http://expasy.org/cgi-bin/prosite-search-ac?%s',
+            'PROSITE'    :'http://expasy.org/cgi-bin/prosite-search-ac?%s',
             'SMART'      :'http://smart.embl-heidelberg.de/smart/do_ann' + 
                           'otation.pl?BLAST=DUMMY&DOMAIN=%s',
             'SUPERFAMILY':'http://supfam.cs.bris.ac.uk/SUPERFAMILY/cgi-' + 

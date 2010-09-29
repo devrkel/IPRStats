@@ -294,7 +294,7 @@ class Cache:
         
         if id != None and app in self.linkdb.keys() and not go_link:
             return self.linkdb[app] % id
-        elif id != None:
+        elif id != None and go_link:
             return self.linkdb['GO'] % id
         else:
             return None

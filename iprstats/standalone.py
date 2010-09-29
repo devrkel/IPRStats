@@ -193,7 +193,9 @@ class LinkTable(gridlib.PyGridTableBase):
         isn't None; make everything readonly
         """
         attr = gridlib.GridCellAttr()
-        if col != 1 and self.GetValue(row, col) != "None":
+        if col == 0 and self.data.get_url(self.app, row) != None:
+            attr = self.link
+        elif col == 2 and self.GetValue(row, col) != "None":
             attr = self.link
     
         attr.SetReadOnly()
